@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'dart:math';
 
 import '../../core/theme/app_theme.dart';
 import '../blocs/auth/auth_bloc.dart';
@@ -26,6 +27,31 @@ class _LoginScreenState extends State<LoginScreen>
 
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
+
+  // Random color generator
+  final Random _random = Random();
+  Color _getRandomColor() {
+    return Color.fromRGBO(
+      _random.nextInt(200), // Limiting to 200 for softer colors
+      _random.nextInt(200),
+      _random.nextInt(200),
+      0.7, // Adding some transparency
+    );
+  }
+
+  // List of education icons
+  final List<IconData> _educationIcons = [
+    Icons.school,
+    Icons.book,
+    Icons.auto_stories,
+    Icons.science,
+    Icons.calculate,
+    Icons.history_edu,
+    Icons.psychology,
+    Icons.language,
+    Icons.computer,
+    Icons.brush,
+  ];
 
   @override
   void initState() {
@@ -65,7 +91,9 @@ class _LoginScreenState extends State<LoginScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF8EAC8), // Cream background color
+      backgroundColor: const Color(
+        0xFFF8E8C8,
+      ), // Exact cream background color from screenshot
       body: BlocConsumer<AuthBloc, AuthState>(
         listener: (context, state) {
           if (state is AuthError) {
@@ -86,23 +114,33 @@ class _LoginScreenState extends State<LoginScreen>
         },
         builder: (context, state) {
           return SafeArea(
-            child: SingleChildScrollView(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: FadeTransition(
-                  opacity: _fadeAnimation,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const SizedBox(height: 60),
-                      _buildRotatedTitle(),
-                      const SizedBox(height: 40),
-                      _buildLoginForm(state),
-                      const SizedBox(height: 30),
-                      _buildRobotImages(),
-                      const SizedBox(height: 20),
-                      _buildSignUpText(),
-                    ],
+            child: Center(
+              child: SingleChildScrollView(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: FadeTransition(
+                    opacity: _fadeAnimation,
+                    child: Container(
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(30),
+                      ),
+                      padding: const EdgeInsets.all(24),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          const SizedBox(height: 20),
+                          _buildRotatedTitle(),
+                          const SizedBox(height: 40),
+                          _buildLoginForm(state),
+                          const SizedBox(height: 30),
+                          _buildEducationIcons(),
+                          const SizedBox(height: 20),
+                          _buildSignUpText(),
+                        ],
+                      ),
+                    ),
                   ),
                 ),
               ),
@@ -117,7 +155,7 @@ class _LoginScreenState extends State<LoginScreen>
     return Transform.rotate(
       angle: -0.1, // Slight rotation as shown in the image
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Text(
             'Welcome Back',
@@ -146,7 +184,7 @@ class _LoginScreenState extends State<LoginScreen>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('E-mail', style: TextStyle(fontSize: 16, color: Colors.black54)),
+          Text('E-mail', style: TextStyle(fontSize: 16, color: Colors.grey)),
           const SizedBox(height: 8),
           _buildTextField(
             controller: _emailController,
@@ -159,7 +197,7 @@ class _LoginScreenState extends State<LoginScreen>
             children: [
               Text(
                 'Password',
-                style: TextStyle(fontSize: 16, color: Colors.black54),
+                style: TextStyle(fontSize: 16, color: Colors.grey),
               ),
               TextButton(
                 onPressed: () {
@@ -168,7 +206,7 @@ class _LoginScreenState extends State<LoginScreen>
                 child: Text(
                   'Forgot password?',
                   style: TextStyle(
-                    color: Colors.black54,
+                    color: Colors.grey,
                     fontWeight: FontWeight.w400,
                   ),
                 ),
@@ -197,12 +235,15 @@ class _LoginScreenState extends State<LoginScreen>
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(30),
+        border: Border.all(color: Colors.grey.withOpacity(0.3)),
       ),
       child: TextFormField(
         controller: controller,
         obscureText: isPassword && _obscurePassword,
+        style: TextStyle(fontSize: 16),
         decoration: InputDecoration(
           hintText: hintText,
+          hintStyle: TextStyle(color: Colors.grey.withOpacity(0.7)),
           contentPadding: const EdgeInsets.symmetric(
             horizontal: 20,
             vertical: 16,
@@ -215,7 +256,7 @@ class _LoginScreenState extends State<LoginScreen>
                       _obscurePassword
                           ? Icons.visibility_off
                           : Icons.visibility,
-                      color: Colors.black54,
+                      color: Colors.grey,
                     ),
                     onPressed: () {
                       setState(() {
@@ -241,76 +282,96 @@ class _LoginScreenState extends State<LoginScreen>
     return SizedBox(
       width: double.infinity,
       height: 56,
-      child: ElevatedButton(
-        onPressed: state is AuthLoading ? null : _login,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.black,
-          foregroundColor: Colors.white,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(30),
+      child: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Colors.black, Color(0xFF333333)],
+            begin: Alignment.centerLeft,
+            end: Alignment.centerRight,
           ),
-          elevation: 0,
+          borderRadius: BorderRadius.circular(30),
         ),
-        child:
-            state is AuthLoading
-                ? const SizedBox(
-                  height: 24,
-                  width: 24,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+        child: ElevatedButton(
+          onPressed: state is AuthLoading ? null : _login,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.transparent,
+            foregroundColor: Colors.white,
+            shadowColor: Colors.transparent,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(30),
+            ),
+            elevation: 0,
+          ),
+          child:
+              state is AuthLoading
+                  ? const SizedBox(
+                    height: 24,
+                    width: 24,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                    ),
+                  )
+                  : const Text(
+                    'Log in',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
                   ),
-                )
-                : const Text(
-                  'Log in',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
-                ),
+        ),
       ),
     );
   }
 
-  Widget _buildRobotImages() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      children: List.generate(
-        5,
-        (index) => ClipRRect(
-          borderRadius: BorderRadius.circular(16),
-          child: Container(
-            width: 60,
-            height: 60,
-            color: Colors.grey.shade300,
-            child: Icon(Icons.smart_toy, size: 30, color: Colors.grey.shade700),
-          ),
+  Widget _buildEducationIcons() {
+    // Shuffle the icons to get a random order each time
+    final shuffledIcons = List<IconData>.from(_educationIcons)..shuffle();
+
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        children: List.generate(
+          5, // Show 5 icons
+          (index) {
+            final color = _getRandomColor();
+            return Container(
+              margin: const EdgeInsets.only(right: 12),
+              decoration: BoxDecoration(
+                color: color.withOpacity(0.2),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: color, width: 2),
+              ),
+              width: 60,
+              height: 60,
+              child: Icon(shuffledIcons[index], color: color, size: 30),
+            );
+          },
         ),
       ),
     );
   }
 
   Widget _buildSignUpText() {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.only(bottom: 20),
-        child: GestureDetector(
-          onTap: () {
-            Navigator.of(context).push(
-              MaterialPageRoute(builder: (context) => const RegisterScreen()),
-            );
-          },
-          child: RichText(
-            text: TextSpan(
-              style: TextStyle(color: Colors.black54, fontSize: 16),
-              children: [
-                TextSpan(text: 'New to Rovio? '),
-                TextSpan(
-                  text: 'Sign up',
-                  style: TextStyle(
-                    decoration: TextDecoration.underline,
-                    fontWeight: FontWeight.bold,
-                  ),
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: GestureDetector(
+        onTap: () {
+          Navigator.of(context).push(
+            MaterialPageRoute(builder: (context) => const RegisterScreen()),
+          );
+        },
+        child: RichText(
+          text: TextSpan(
+            style: TextStyle(color: Colors.grey, fontSize: 16),
+            children: [
+              TextSpan(text: 'New to Rovio? '),
+              TextSpan(
+                text: 'Sign up',
+                style: TextStyle(
+                  decoration: TextDecoration.underline,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black,
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),

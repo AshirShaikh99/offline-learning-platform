@@ -76,7 +76,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF8EAC8), // Cream background color
+      backgroundColor: const Color(
+        0xFFF8E8C8,
+      ), // Exact cream background color from screenshot
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -103,87 +105,96 @@ class _RegisterScreenState extends State<RegisterScreen> {
             ).showSnackBar(SnackBar(content: Text(state.message)));
           }
         },
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24.0),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Transform.rotate(
-                  angle: -0.1,
-                  child: const Text(
-                    'Create Account',
-                    style: TextStyle(
-                      fontSize: 36,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black,
-                    ),
-                  ),
+        child: Center(
+          child: SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.all(24.0),
+              child: Container(
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(30),
                 ),
-                const SizedBox(height: 40),
-                Text(
-                  'E-mail',
-                  style: TextStyle(fontSize: 16, color: Colors.black54),
-                ),
-                const SizedBox(height: 8),
-                _buildTextField(
-                  controller: _emailController,
-                  hintText: 'your.email@example.com',
-                  isPassword: false,
-                ),
-                const SizedBox(height: 20),
-                Text(
-                  'Password',
-                  style: TextStyle(fontSize: 16, color: Colors.black54),
-                ),
-                const SizedBox(height: 8),
-                _buildTextField(
-                  controller: _passwordController,
-                  hintText: '************',
-                  isPassword: true,
-                  isPasswordField: true,
-                ),
-                const SizedBox(height: 20),
-                Text(
-                  'Confirm Password',
-                  style: TextStyle(fontSize: 16, color: Colors.black54),
-                ),
-                const SizedBox(height: 8),
-                _buildTextField(
-                  controller: _confirmPasswordController,
-                  hintText: '************',
-                  isPassword: _obscureConfirmPassword,
-                  isConfirmPasswordField: true,
-                ),
-                const SizedBox(height: 20),
-                _buildRoleSelector(),
-                if (_selectedRole == AppConstants.roleStudent) ...[
-                  const SizedBox(height: 20),
-                  _buildClassSelector(),
-                ],
-                const SizedBox(height: 30),
-                _buildRegisterButton(),
-                const SizedBox(height: 20),
-                Center(
-                  child: TextButton(
-                    onPressed: () {
-                      Navigator.of(context).pushReplacement(
-                        MaterialPageRoute(
-                          builder: (context) => const LoginScreen(),
+                padding: const EdgeInsets.all(24),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Create Account',
+                        style: TextStyle(
+                          fontSize: 36,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black,
                         ),
-                      );
-                    },
-                    child: const Text(
-                      'Already have an account? Login',
-                      style: TextStyle(
-                        color: Colors.black54,
-                        fontWeight: FontWeight.w500,
                       ),
-                    ),
+                      const SizedBox(height: 40),
+                      Text(
+                        'E-mail',
+                        style: TextStyle(fontSize: 16, color: Colors.grey),
+                      ),
+                      const SizedBox(height: 8),
+                      _buildTextField(
+                        controller: _emailController,
+                        hintText: 'your.email@example.com',
+                        isPassword: false,
+                      ),
+                      const SizedBox(height: 20),
+                      Text(
+                        'Password',
+                        style: TextStyle(fontSize: 16, color: Colors.grey),
+                      ),
+                      const SizedBox(height: 8),
+                      _buildTextField(
+                        controller: _passwordController,
+                        hintText: '************',
+                        isPassword: true,
+                        isPasswordField: true,
+                      ),
+                      const SizedBox(height: 20),
+                      Text(
+                        'Confirm Password',
+                        style: TextStyle(fontSize: 16, color: Colors.grey),
+                      ),
+                      const SizedBox(height: 8),
+                      _buildTextField(
+                        controller: _confirmPasswordController,
+                        hintText: '************',
+                        isPassword: _obscureConfirmPassword,
+                        isConfirmPasswordField: true,
+                      ),
+                      const SizedBox(height: 20),
+                      _buildRoleSelector(),
+                      if (_selectedRole == AppConstants.roleStudent) ...[
+                        const SizedBox(height: 20),
+                        _buildClassSelector(),
+                      ],
+                      const SizedBox(height: 30),
+                      _buildRegisterButton(),
+                      const SizedBox(height: 20),
+                      Center(
+                        child: TextButton(
+                          onPressed: () {
+                            Navigator.of(context).pushReplacement(
+                              MaterialPageRoute(
+                                builder: (context) => const LoginScreen(),
+                              ),
+                            );
+                          },
+                          child: const Text(
+                            'Already have an account? Login',
+                            style: TextStyle(
+                              color: Colors.grey,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-              ],
+              ),
             ),
           ),
         ),
@@ -202,12 +213,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(30),
+        border: Border.all(color: Colors.grey.withOpacity(0.3)),
       ),
       child: TextFormField(
         controller: controller,
         obscureText: isPassword,
+        style: TextStyle(fontSize: 16),
         decoration: InputDecoration(
           hintText: hintText,
+          hintStyle: TextStyle(color: Colors.grey.withOpacity(0.7)),
           contentPadding: const EdgeInsets.symmetric(
             horizontal: 20,
             vertical: 16,
@@ -220,7 +234,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       _obscurePassword
                           ? Icons.visibility_off
                           : Icons.visibility,
-                      color: Colors.black54,
+                      color: Colors.grey,
                     ),
                     onPressed: () {
                       setState(() {
@@ -234,7 +248,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       _obscureConfirmPassword
                           ? Icons.visibility_off
                           : Icons.visibility,
-                      color: Colors.black54,
+                      color: Colors.grey,
                     ),
                     onPressed: () {
                       setState(() {
@@ -265,14 +279,18 @@ class _RegisterScreenState extends State<RegisterScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(30),
+        border: Border.all(color: Colors.grey.withOpacity(0.3)),
       ),
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: DropdownButtonFormField<String>(
         value: _selectedRole,
-        decoration: const InputDecoration(
+        decoration: InputDecoration(
           labelText: 'Role',
+          labelStyle: TextStyle(color: Colors.grey),
           border: InputBorder.none,
         ),
+        style: TextStyle(fontSize: 16, color: Colors.black),
+        dropdownColor: Colors.white,
         items: [
           DropdownMenuItem(
             value: AppConstants.roleStudent,
@@ -300,14 +318,18 @@ class _RegisterScreenState extends State<RegisterScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(30),
+        border: Border.all(color: Colors.grey.withOpacity(0.3)),
       ),
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: DropdownButtonFormField<String>(
         value: _selectedClass,
-        decoration: const InputDecoration(
+        decoration: InputDecoration(
           labelText: 'Class',
+          labelStyle: TextStyle(color: Colors.grey),
           border: InputBorder.none,
         ),
+        style: TextStyle(fontSize: 16, color: Colors.black),
+        dropdownColor: Colors.white,
         items:
             _classes.map((String value) {
               return DropdownMenuItem<String>(value: value, child: Text(value));
