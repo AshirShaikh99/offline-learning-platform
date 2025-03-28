@@ -23,12 +23,10 @@ class _AdminDashboardState extends State<AdminDashboard> {
   @override
   void initState() {
     super.initState();
-    // Load all files when dashboard initializes
     _loadFiles();
   }
 
   void _loadFiles() {
-    // Load all files without class/subject filter to get total count
     context.read<FileBloc>().add(
       const LoadFilesEvent(className: '', subject: ''),
     );
@@ -36,6 +34,10 @@ class _AdminDashboardState extends State<AdminDashboard> {
 
   @override
   Widget build(BuildContext context) {
+    final screenSize = MediaQuery.of(context).size;
+    final isSmallScreen = screenSize.width < 600;
+    final padding = _getPadding(screenSize);
+
     return BlocListener<AuthBloc, AuthState>(
       listenWhen:
           (previous, current) =>
@@ -49,16 +51,14 @@ class _AdminDashboardState extends State<AdminDashboard> {
         }
       },
       child: Scaffold(
-        backgroundColor: const Color(
-          0xFFF8EAC8,
-        ), // Cream background color to match login screen
+        backgroundColor: const Color(0xFFF8EAC8),
         body: CustomScrollView(
           slivers: [
-            _buildAppBar(),
-            SliverToBoxAdapter(child: _buildWelcomeSection()),
+            _buildAppBar(screenSize),
+            SliverToBoxAdapter(child: _buildWelcomeSection(screenSize)),
             SliverPadding(
-              padding: const EdgeInsets.all(16),
-              sliver: _buildActionGrid(),
+              padding: EdgeInsets.all(padding),
+              sliver: _buildActionGrid(screenSize),
             ),
           ],
         ),
@@ -66,39 +66,57 @@ class _AdminDashboardState extends State<AdminDashboard> {
     );
   }
 
-  Widget _buildAppBar() {
+  Widget _buildAppBar(Size screenSize) {
+    final isSmallScreen = screenSize.width < 600;
+    final expandedHeight = isSmallScreen ? 100.0 : 120.0;
+    final titleFontSize = isSmallScreen ? 20.0 : 24.0;
+    final iconSize = isSmallScreen ? 22.0 : 24.0;
+
     return SliverAppBar(
-      expandedHeight: 120,
+      expandedHeight: expandedHeight,
       floating: false,
       pinned: true,
-      backgroundColor: Colors.black, // Black to match login button
+      backgroundColor: Colors.black,
       flexibleSpace: FlexibleSpaceBar(
-        titlePadding: const EdgeInsets.only(left: 16, bottom: 16),
+        titlePadding: EdgeInsets.only(
+          left: isSmallScreen ? 16 : 24,
+          bottom: isSmallScreen ? 12 : 16,
+        ),
         title: Text(
           'Admin Dashboard',
           style: AppTheme.titleLarge.copyWith(
             color: Colors.white,
             fontWeight: FontWeight.bold,
+            fontSize: titleFontSize,
           ),
         ),
         background: Container(
-          decoration: const BoxDecoration(
-            color: Colors.black, // Solid black to match login button
-          ),
+          decoration: const BoxDecoration(color: Colors.black),
         ),
       ),
       actions: [
         IconButton(
-          icon: const Icon(Icons.logout, color: Colors.white),
+          icon: Icon(Icons.logout, color: Colors.white, size: iconSize),
           onPressed: () => context.read<AuthBloc>().add(LogoutEvent()),
         ),
+        SizedBox(width: isSmallScreen ? 8 : 16),
       ],
     );
   }
 
-  Widget _buildWelcomeSection() {
+  Widget _buildWelcomeSection(Size screenSize) {
+    final isSmallScreen = screenSize.width < 600;
+    final padding = _getPadding(screenSize);
+    final titleSize = isSmallScreen ? 24.0 : 28.0;
+    final subtitleSize = isSmallScreen ? 14.0 : 16.0;
+
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 24, 16, 16),
+      padding: EdgeInsets.fromLTRB(
+        padding,
+        isSmallScreen ? 16 : 24,
+        padding,
+        padding,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -107,19 +125,28 @@ class _AdminDashboardState extends State<AdminDashboard> {
             style: AppTheme.headlineMedium.copyWith(
               color: Colors.black,
               fontWeight: FontWeight.bold,
+              fontSize: titleSize,
             ),
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: isSmallScreen ? 6 : 8),
           Text(
             'Manage your school content',
-            style: AppTheme.bodyLarge.copyWith(color: Colors.black54),
+            style: AppTheme.bodyLarge.copyWith(
+              color: Colors.black54,
+              fontSize: subtitleSize,
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildActionGrid() {
+  Widget _buildActionGrid(Size screenSize) {
+    final isSmallScreen = screenSize.width < 600;
+    final crossAxisCount = _getCrossAxisCount(screenSize);
+    final childAspectRatio = _getChildAspectRatio(screenSize);
+    final spacing = isSmallScreen ? 12.0 : 16.0;
+
     final actions = [
       {
         'title': 'Manage Courses',
@@ -141,11 +168,11 @@ class _AdminDashboardState extends State<AdminDashboard> {
     ];
 
     return SliverGrid(
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        childAspectRatio: 1.1,
-        crossAxisSpacing: 16,
-        mainAxisSpacing: 16,
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: crossAxisCount,
+        childAspectRatio: childAspectRatio,
+        crossAxisSpacing: spacing,
+        mainAxisSpacing: spacing,
       ),
       delegate: SliverChildBuilderDelegate((context, index) {
         final action = actions[index];
@@ -154,12 +181,14 @@ class _AdminDashboardState extends State<AdminDashboard> {
               title: action['title'] as String,
               icon: action['icon'] as IconData,
               color: action['color'] as Color,
+              screenSize: screenSize,
             )
             : _buildActionCard(
               title: action['title'] as String,
               icon: action['icon'] as IconData,
               color: action['color'] as Color,
               onTap: action['onTap'] as VoidCallback,
+              screenSize: screenSize,
             );
       }, childCount: actions.length),
     );
@@ -170,25 +199,34 @@ class _AdminDashboardState extends State<AdminDashboard> {
     required IconData icon,
     required Color color,
     required VoidCallback onTap,
+    required Size screenSize,
   }) {
+    final isSmallScreen = screenSize.width < 600;
+    final padding = isSmallScreen ? 16.0 : 20.0;
+    final iconSize = isSmallScreen ? 28.0 : 32.0;
+    final titleSize = isSmallScreen ? 16.0 : 18.0;
+    final buttonTextSize = isSmallScreen ? 12.0 : 14.0;
+
     return Card(
       elevation: 0,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(isSmallScreen ? 16 : 20),
+      ),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(isSmallScreen ? 16 : 20),
         child: Container(
           decoration: BoxDecoration(
             gradient: LinearGradient(
-              colors: [color, color.withOpacity(0.8)],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
+              colors: [color, color.withOpacity(0.8)],
             ),
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(isSmallScreen ? 16 : 20),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.1),
-                blurRadius: 8,
+                color: color.withOpacity(0.2),
+                blurRadius: isSmallScreen ? 6 : 8,
                 offset: const Offset(0, 4),
               ),
             ],
@@ -198,28 +236,39 @@ class _AdminDashboardState extends State<AdminDashboard> {
               Positioned(
                 right: -20,
                 bottom: -20,
-                child: Icon(
-                  icon,
-                  size: 100,
-                  color: Colors.white.withOpacity(0.2),
+                child: SizedBox(
+                  width: isSmallScreen ? 80 : 100,
+                  height: isSmallScreen ? 80 : 100,
+                  child: Icon(
+                    icon,
+                    size: isSmallScreen ? 80 : 100,
+                    color: Colors.white.withOpacity(0.2),
+                  ),
                 ),
               ),
               Padding(
-                padding: const EdgeInsets.all(20),
+                padding: EdgeInsets.all(padding),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Icon(icon, color: Colors.white, size: 32),
+                    SizedBox(
+                      width: iconSize,
+                      height: iconSize,
+                      child: Icon(icon, color: Colors.white, size: iconSize),
+                    ),
                     const Spacer(),
                     Text(
                       title,
-                      style: AppTheme.titleLarge.copyWith(color: Colors.white),
+                      style: AppTheme.titleLarge.copyWith(
+                        color: Colors.white,
+                        fontSize: titleSize,
+                      ),
                     ),
-                    const SizedBox(height: 8),
+                    SizedBox(height: isSmallScreen ? 6 : 8),
                     Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 6,
+                      padding: EdgeInsets.symmetric(
+                        horizontal: isSmallScreen ? 10 : 12,
+                        vertical: isSmallScreen ? 4 : 6,
                       ),
                       decoration: BoxDecoration(
                         color: Colors.white.withOpacity(0.2),
@@ -229,6 +278,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
                         'Manage',
                         style: AppTheme.bodyMedium.copyWith(
                           color: Colors.white,
+                          fontSize: buttonTextSize,
                         ),
                       ),
                     ),
@@ -246,7 +296,18 @@ class _AdminDashboardState extends State<AdminDashboard> {
     required String title,
     required IconData icon,
     required Color color,
+    required Size screenSize,
   }) {
+    final isSmallScreen = screenSize.width < 600;
+    final padding =
+        screenSize.width >= 1200 ? 32.0 : (isSmallScreen ? 20.0 : 24.0);
+    final iconSize =
+        screenSize.width >= 1200 ? 40.0 : (isSmallScreen ? 32.0 : 36.0);
+    final titleSize =
+        screenSize.width >= 1200 ? 24.0 : (isSmallScreen ? 20.0 : 22.0);
+    final statsTextSize =
+        screenSize.width >= 1200 ? 18.0 : (isSmallScreen ? 16.0 : 17.0);
+
     return BlocBuilder<FileBloc, FileState>(
       builder: (context, state) {
         int uploadCount = 0;
@@ -257,7 +318,9 @@ class _AdminDashboardState extends State<AdminDashboard> {
         return Card(
           elevation: 0,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(
+              screenSize.width >= 1200 ? 24 : (isSmallScreen ? 16 : 20),
+            ),
           ),
           child: Container(
             decoration: BoxDecoration(
@@ -266,37 +329,74 @@ class _AdminDashboardState extends State<AdminDashboard> {
                 end: Alignment.bottomRight,
                 colors: [color, color.withOpacity(0.8)],
               ),
-              borderRadius: BorderRadius.circular(20),
+              borderRadius: BorderRadius.circular(
+                screenSize.width >= 1200 ? 24 : (isSmallScreen ? 16 : 20),
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: color.withOpacity(0.2),
+                  blurRadius:
+                      screenSize.width >= 1200 ? 12 : (isSmallScreen ? 6 : 8),
+                  offset: const Offset(0, 4),
+                ),
+              ],
             ),
             child: Stack(
               children: [
                 Positioned(
-                  right: -20,
-                  bottom: -20,
+                  right: -30,
+                  bottom: -30,
                   child: Icon(
                     icon,
-                    size: 100,
+                    size:
+                        screenSize.width >= 1200
+                            ? 140
+                            : (isSmallScreen ? 100 : 120),
                     color: Colors.white.withOpacity(0.2),
                   ),
                 ),
                 Padding(
-                  padding: const EdgeInsets.all(20),
+                  padding: EdgeInsets.all(padding),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Icon(icon, color: Colors.white, size: 32),
+                      Icon(icon, color: Colors.white, size: iconSize),
                       const Spacer(),
                       Text(
                         title,
                         style: AppTheme.titleLarge.copyWith(
                           color: Colors.white,
+                          fontSize: titleSize,
+                          fontWeight: FontWeight.bold,
                         ),
                       ),
-                      const SizedBox(height: 8),
-                      Text(
-                        '$uploadCount Files Uploaded',
-                        style: AppTheme.bodyLarge.copyWith(
-                          color: Colors.white.withOpacity(0.9),
+                      SizedBox(
+                        height:
+                            screenSize.width >= 1200
+                                ? 12
+                                : (isSmallScreen ? 6 : 8),
+                      ),
+                      Container(
+                        padding: EdgeInsets.symmetric(
+                          horizontal:
+                              screenSize.width >= 1200
+                                  ? 16
+                                  : (isSmallScreen ? 10 : 12),
+                          vertical:
+                              screenSize.width >= 1200
+                                  ? 8
+                                  : (isSmallScreen ? 4 : 6),
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.2),
+                          borderRadius: BorderRadius.circular(30),
+                        ),
+                        child: Text(
+                          '$uploadCount Files Uploaded',
+                          style: AppTheme.bodyLarge.copyWith(
+                            color: Colors.white.withOpacity(0.9),
+                            fontSize: statsTextSize,
+                          ),
                         ),
                       ),
                     ],
@@ -308,5 +408,32 @@ class _AdminDashboardState extends State<AdminDashboard> {
         );
       },
     );
+  }
+
+  int _getCrossAxisCount(Size screenSize) {
+    if (screenSize.width >= 1200) return 3;
+    if (screenSize.width >= 800) return 2;
+    return 1; // Single column for smaller screens
+  }
+
+  double _getChildAspectRatio(Size screenSize) {
+    if (screenSize.width >= 1200) return 2.0;
+    if (screenSize.width >= 800) return 1.8;
+    if (screenSize.width >= 600) return 1.6;
+    return 1.4; // More height for smaller screens
+  }
+
+  double _getSpacing(Size screenSize) {
+    if (screenSize.width >= 1200) return 24.0;
+    if (screenSize.width >= 800) return 20.0;
+    if (screenSize.width >= 600) return 16.0;
+    return 12.0;
+  }
+
+  double _getPadding(Size screenSize) {
+    if (screenSize.width >= 1200) return 32.0;
+    if (screenSize.width >= 800) return 24.0;
+    if (screenSize.width >= 600) return 20.0;
+    return 16.0;
   }
 }
