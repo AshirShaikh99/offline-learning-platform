@@ -155,20 +155,22 @@ class _AddEditCourseScreenState extends State<AddEditCourseScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: const Color(
+        0xFFF8E8C8,
+      ), // Cream background color to match login screen
       appBar: AppBar(
+        backgroundColor: Colors.black, // Black to match login button
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
           _isEditing ? 'Edit Course' : 'Add Course',
           style: AppTheme.titleLarge.copyWith(
-            color: AppTheme.primaryColor,
+            color: Colors.white,
             fontWeight: FontWeight.bold,
           ),
         ),
-        backgroundColor: Colors.white,
         elevation: 0,
         centerTitle: true,
       ),
@@ -183,302 +185,180 @@ class _AddEditCourseScreenState extends State<AddEditCourseScreen> {
           }
         },
         builder: (context, state) {
-          return SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 24,
-                    vertical: 32,
-                  ),
-                  child: Form(
-                    key: _formKey,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Basic Information',
-                          style: AppTheme.bodyLarge.copyWith(
-                            color: Colors.grey[800],
-                            fontWeight: FontWeight.w600,
-                          ),
+          return Center(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(24),
+              child: Container(
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(30),
+                ),
+                padding: const EdgeInsets.all(24),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Basic Information',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black,
                         ),
-                        const SizedBox(height: 24),
-                        TextFormField(
-                          controller: _titleController,
-                          style: AppTheme.bodyLarge,
-                          decoration: InputDecoration(
-                            hintText: 'Course Title',
-                            filled: true,
-                            fillColor: Colors.grey[50],
-                            prefixIcon: Icon(
-                              Icons.title_outlined,
-                              color: AppTheme.primaryColor,
-                            ),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              borderSide: BorderSide.none,
-                            ),
-                            enabledBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              borderSide: BorderSide.none,
-                            ),
-                            focusedBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              borderSide: BorderSide(
-                                color: AppTheme.primaryColor,
-                                width: 1.5,
-                              ),
-                            ),
-                          ),
-                          validator:
-                              (value) =>
-                                  value?.isEmpty ?? true
-                                      ? 'Please enter a title'
-                                      : null,
+                      ),
+                      const SizedBox(height: 24),
+                      _buildTextField(
+                        controller: _titleController,
+                        hintText: 'Course Title',
+                        icon: Icons.title_outlined,
+                      ),
+                      const SizedBox(height: 16),
+                      _buildTextField(
+                        controller: _descriptionController,
+                        hintText: 'Course Description',
+                        icon: Icons.description_outlined,
+                        maxLines: 3,
+                      ),
+                      const SizedBox(height: 32),
+                      Text(
+                        'Course Details',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black,
                         ),
-                        const SizedBox(height: 16),
-                        TextFormField(
-                          controller: _descriptionController,
-                          style: AppTheme.bodyLarge,
-                          maxLines: 3,
-                          decoration: InputDecoration(
-                            hintText: 'Course Description',
-                            filled: true,
-                            fillColor: Colors.grey[50],
-                            prefixIcon: Icon(
-                              Icons.description_outlined,
-                              color: AppTheme.primaryColor,
-                            ),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              borderSide: BorderSide.none,
-                            ),
-                            enabledBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              borderSide: BorderSide.none,
-                            ),
-                            focusedBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              borderSide: BorderSide(
-                                color: AppTheme.primaryColor,
-                                width: 1.5,
-                              ),
-                            ),
-                          ),
-                          validator:
-                              (value) =>
-                                  value?.isEmpty ?? true
-                                      ? 'Please enter a description'
-                                      : null,
+                      ),
+                      const SizedBox(height: 24),
+                      _buildDropdown(
+                        value: _selectedClass,
+                        items: _classes,
+                        hintText: 'Select Class',
+                        icon: Icons.class_outlined,
+                        onChanged: (value) {
+                          setState(() {
+                            _selectedClass = value;
+                          });
+                        },
+                        validator:
+                            (value) =>
+                                value == null ? 'Please select a class' : null,
+                      ),
+                      const SizedBox(height: 16),
+                      _buildDropdown(
+                        value: _selectedSubject,
+                        items: _subjects,
+                        hintText: 'Select Subject',
+                        icon: Icons.subject,
+                        onChanged: (value) {
+                          setState(() {
+                            _selectedSubject = value;
+                          });
+                        },
+                        validator:
+                            (value) =>
+                                value == null
+                                    ? 'Please select a subject'
+                                    : null,
+                      ),
+                      const SizedBox(height: 32),
+                      Text(
+                        'Course Content',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black,
                         ),
-                        const SizedBox(height: 32),
-                        Text(
-                          'Course Details',
-                          style: AppTheme.bodyLarge.copyWith(
-                            color: Colors.grey[800],
-                            fontWeight: FontWeight.w600,
+                      ),
+                      const SizedBox(height: 24),
+                      _buildDropdown(
+                        value: _selectedFileType,
+                        items: [AppConstants.typePdf, AppConstants.typeFlash],
+                        hintText: 'Select File Type',
+                        icon: Icons.file_present_outlined,
+                        onChanged: (value) {
+                          setState(() {
+                            _selectedFileType = value!;
+                            _selectedFile = null;
+                            _selectedFileName = null;
+                          });
+                        },
+                        itemBuilder:
+                            (item) =>
+                                item == AppConstants.typePdf
+                                    ? 'PDF'
+                                    : 'Flash/HTML',
+                      ),
+                      const SizedBox(height: 24),
+                      InkWell(
+                        onTap: _pickFile,
+                        borderRadius: BorderRadius.circular(30),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 20,
+                            vertical: 16,
                           ),
-                        ),
-                        const SizedBox(height: 24),
-                        Container(
                           decoration: BoxDecoration(
-                            color: Colors.grey[50],
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: DropdownButtonFormField<String>(
-                            value: _selectedClass,
-                            decoration: InputDecoration(
-                              hintText: 'Select Class',
-                              prefixIcon: Icon(
-                                Icons.class_outlined,
-                                color: AppTheme.primaryColor,
-                              ),
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                                borderSide: BorderSide.none,
-                              ),
-                              enabledBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                                borderSide: BorderSide.none,
-                              ),
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(30),
+                            border: Border.all(
+                              color: Colors.grey.withOpacity(0.3),
                             ),
-                            items:
-                                _classes.map((String className) {
-                                  return DropdownMenuItem<String>(
-                                    value: className,
-                                    child: Text(className),
-                                  );
-                                }).toList(),
-                            validator:
-                                (value) =>
-                                    value == null
-                                        ? 'Please select a class'
-                                        : null,
-                            onChanged: (String? newValue) {
-                              setState(() {
-                                _selectedClass = newValue;
-                              });
-                            },
                           ),
-                        ),
-                        const SizedBox(height: 16),
-                        Container(
-                          decoration: BoxDecoration(
-                            color: Colors.grey[50],
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: DropdownButtonFormField<String>(
-                            value: _selectedSubject,
-                            decoration: InputDecoration(
-                              hintText: 'Select Subject',
-                              prefixIcon: Icon(
-                                Icons.subject,
-                                color: AppTheme.primaryColor,
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.upload_file_outlined,
+                                color: Colors.grey,
                               ),
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                                borderSide: BorderSide.none,
-                              ),
-                              enabledBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                                borderSide: BorderSide.none,
-                              ),
-                            ),
-                            items:
-                                _subjects.map((String subject) {
-                                  return DropdownMenuItem<String>(
-                                    value: subject,
-                                    child: Text(subject),
-                                  );
-                                }).toList(),
-                            validator:
-                                (value) =>
-                                    value == null
-                                        ? 'Please select a subject'
-                                        : null,
-                            onChanged: (String? newValue) {
-                              setState(() {
-                                _selectedSubject = newValue;
-                              });
-                            },
-                          ),
-                        ),
-                        const SizedBox(height: 32),
-                        Text(
-                          'Course Content',
-                          style: AppTheme.bodyLarge.copyWith(
-                            color: Colors.grey[800],
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        const SizedBox(height: 24),
-                        Container(
-                          decoration: BoxDecoration(
-                            color: Colors.grey[50],
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: DropdownButtonFormField<String>(
-                            value: _selectedFileType,
-                            decoration: InputDecoration(
-                              hintText: 'Select File Type',
-                              prefixIcon: Icon(
-                                Icons.file_present_outlined,
-                                color: AppTheme.primaryColor,
-                              ),
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                                borderSide: BorderSide.none,
-                              ),
-                              enabledBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                                borderSide: BorderSide.none,
-                              ),
-                            ),
-                            items: [
-                              DropdownMenuItem<String>(
-                                value: AppConstants.typePdf,
-                                child: const Text('PDF'),
-                              ),
-                              DropdownMenuItem<String>(
-                                value: AppConstants.typeFlash,
-                                child: const Text('Flash/HTML'),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      _selectedFileName ?? 'Upload File',
+                                      style: TextStyle(
+                                        color:
+                                            _selectedFileName != null
+                                                ? Colors.black
+                                                : Colors.grey,
+                                      ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ],
+                                ),
                               ),
                             ],
-                            onChanged: (String? newValue) {
-                              setState(() {
-                                _selectedFileType =
-                                    newValue ?? AppConstants.typePdf;
-                                _selectedFile = null;
-                                _selectedFileName = null;
-                              });
-                            },
                           ),
                         ),
-                        const SizedBox(height: 24),
-                        InkWell(
-                          onTap: _pickFile,
-                          borderRadius: BorderRadius.circular(12),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 12,
+                      ),
+                      const SizedBox(height: 40),
+                      SizedBox(
+                        width: double.infinity,
+                        height: 56,
+                        child: Container(
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [Colors.black, Color(0xFF333333)],
+                              begin: Alignment.centerLeft,
+                              end: Alignment.centerRight,
                             ),
-                            decoration: BoxDecoration(
-                              color: Colors.grey[50],
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(
-                                color: Colors.grey[200]!,
-                                width: 1,
-                              ),
-                            ),
-                            child: Row(
-                              children: [
-                                Icon(
-                                  Icons.upload_file_outlined,
-                                  color: AppTheme.primaryColor,
-                                ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        'Upload File',
-                                        style: AppTheme.bodyLarge,
-                                      ),
-                                      if (_selectedFileName != null) ...[
-                                        const SizedBox(height: 4),
-                                        Text(
-                                          _selectedFileName!,
-                                          style: AppTheme.bodyMedium.copyWith(
-                                            color: Colors.grey[600],
-                                          ),
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                      ],
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
+                            borderRadius: BorderRadius.circular(30),
                           ),
-                        ),
-                        const SizedBox(height: 40),
-                        SizedBox(
-                          width: double.infinity,
-                          height: 56,
-                          child: FilledButton(
+                          child: ElevatedButton(
                             onPressed:
                                 state is CourseLoading ? null : _saveCourse,
-                            style: FilledButton.styleFrom(
-                              backgroundColor: AppTheme.primaryColor,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.transparent,
+                              foregroundColor: Colors.white,
+                              shadowColor: Colors.transparent,
                               shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
+                                borderRadius: BorderRadius.circular(30),
                               ),
+                              elevation: 0,
                             ),
                             child:
                                 state is CourseLoading
@@ -497,20 +377,98 @@ class _AddEditCourseScreenState extends State<AddEditCourseScreen> {
                                       _isEditing
                                           ? 'Update Course'
                                           : 'Add Course',
-                                      style: AppTheme.labelLarge.copyWith(
-                                        color: Colors.white,
+                                      style: TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.w500,
                                       ),
                                     ),
                           ),
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
                 ),
-              ],
+              ),
             ),
           );
         },
+      ),
+    );
+  }
+
+  Widget _buildTextField({
+    required TextEditingController controller,
+    required String hintText,
+    required IconData icon,
+    int maxLines = 1,
+  }) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(30),
+        border: Border.all(color: Colors.grey.withOpacity(0.3)),
+      ),
+      child: TextFormField(
+        controller: controller,
+        maxLines: maxLines,
+        style: TextStyle(fontSize: 16),
+        decoration: InputDecoration(
+          hintText: hintText,
+          hintStyle: TextStyle(color: Colors.grey.withOpacity(0.7)),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 20,
+            vertical: 16,
+          ),
+          border: InputBorder.none,
+          prefixIcon: Icon(icon, color: Colors.grey),
+        ),
+        validator: (value) {
+          if (value == null || value.isEmpty) {
+            return 'This field is required';
+          }
+          return null;
+        },
+      ),
+    );
+  }
+
+  Widget _buildDropdown<T>({
+    required T? value,
+    required List<T> items,
+    required String hintText,
+    required IconData icon,
+    required Function(T?) onChanged,
+    String? Function(T?)? validator,
+    String Function(T)? itemBuilder,
+  }) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(30),
+        border: Border.all(color: Colors.grey.withOpacity(0.3)),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 12),
+      child: DropdownButtonFormField<T>(
+        value: value,
+        decoration: InputDecoration(
+          hintText: hintText,
+          hintStyle: TextStyle(color: Colors.grey.withOpacity(0.7)),
+          border: InputBorder.none,
+          prefixIcon: Icon(icon, color: Colors.grey),
+        ),
+        style: TextStyle(fontSize: 16, color: Colors.black),
+        dropdownColor: Colors.white,
+        items:
+            items.map((T item) {
+              return DropdownMenuItem<T>(
+                value: item,
+                child: Text(
+                  itemBuilder != null ? itemBuilder(item) : item.toString(),
+                ),
+              );
+            }).toList(),
+        validator: validator,
+        onChanged: onChanged,
       ),
     );
   }

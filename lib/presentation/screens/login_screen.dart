@@ -159,15 +159,15 @@ class _LoginScreenState extends State<LoginScreen>
           'Welcome Back',
           style: TextStyle(
             fontSize: 36,
-            fontWeight: FontWeight.bold,
+            fontWeight: FontWeight.w600,
             color: Colors.black,
           ),
         ),
         Text(
-          'to Rovio',
+          'to Edutech',
           style: TextStyle(
             fontSize: 36,
-            fontWeight: FontWeight.bold,
+            fontWeight: FontWeight.w600,
             color: Colors.black,
           ),
         ),
