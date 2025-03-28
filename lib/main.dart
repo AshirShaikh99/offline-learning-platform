@@ -98,7 +98,7 @@ class MyApp extends StatelessWidget {
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
-        title: 'E-Learning App',
+        title: 'Edutech',
         // Enable Material 3
         theme: ThemeData(
           useMaterial3: true,

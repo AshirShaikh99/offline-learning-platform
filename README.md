@@ -1,15 +1,20 @@
-# android_animations
+# Edutech
 
-A new Flutter project.
+A Flutter-based educational technology application.
 
 ## Getting Started
 
-This project is a starting point for a Flutter application.
+This is an educational technology application built with Flutter, designed to provide a seamless learning experience for both students and administrators.
 
-A few resources to get you started if this is your first Flutter project:
+## Features
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+- Role-based access control (Admin/Student)
+- Course management
+- Offline content access
+- Material 3 design
+- Dark mode support
+
+## Development
 
 For help getting started with Flutter development, view the
 [online documentation](https://docs.flutter.dev/), which offers tutorials,

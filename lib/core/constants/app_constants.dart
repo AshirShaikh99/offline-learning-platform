@@ -1,7 +1,7 @@
 /// Application-wide constants
 class AppConstants {
   // App Information
-  static const String appName = 'School Offline App';
+  static const String appName = 'Edutech';
   static const String appVersion = '1.0.0';
 
   // Storage Keys
