@@ -29,6 +29,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
   bool _obscureConfirmPassword = true;
 
   final List<String> _classes = [
+    'Playgroup',
+    'Nursery',
+    'KG',
     'Class 1',
     'Class 2',
     'Class 3',
@@ -75,10 +78,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Get screen size
+    final screenSize = MediaQuery.of(context).size;
+    final isSmallScreen = screenSize.width < 600;
+
     return Scaffold(
-      backgroundColor: const Color(
-        0xFFF8E8C8,
-      ), // Exact cream background color from screenshot
+      backgroundColor: const Color(0xFFF8E8C8),
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -89,33 +94,57 @@ class _RegisterScreenState extends State<RegisterScreen> {
       ),
       body: BlocListener<AuthBloc, AuthState>(
         listener: (context, state) {
-          if (state is Authenticated) {
-            Navigator.of(context).pushAndRemoveUntil(
-              MaterialPageRoute(builder: (context) => const LoginScreen()),
-              (route) => false,
-            );
+          if (state is RegistrationSuccess) {
+            // Changed from Authenticated to RegistrationSuccess
+            // Show success toast
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
-                content: Text('Registration successful! Please login'),
+                content: Text('Account created successfully!'),
+                duration: Duration(seconds: 2),
+                backgroundColor: Colors.green, // Added for better visibility
               ),
             );
+
+            // Navigate to login screen after a short delay
+            Future.delayed(const Duration(seconds: 1), () {
+              Navigator.of(context).pushAndRemoveUntil(
+                MaterialPageRoute(builder: (context) => const LoginScreen()),
+                (route) => false,
+              );
+            });
           } else if (state is AuthError) {
-            ScaffoldMessenger.of(
-              context,
-            ).showSnackBar(SnackBar(content: Text(state.message)));
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(state.message),
+                backgroundColor: Colors.red, // Added for better visibility
+              ),
+            );
           }
         },
         child: Center(
           child: SingleChildScrollView(
             child: Padding(
-              padding: const EdgeInsets.all(24.0),
+              padding: EdgeInsets.symmetric(
+                horizontal: isSmallScreen ? 24.0 : screenSize.width * 0.1,
+                vertical: 24.0,
+              ),
               child: Container(
                 width: double.infinity,
+                constraints: BoxConstraints(
+                  maxWidth: 600, // Maximum width for larger screens
+                ),
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(30),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.1),
+                      blurRadius: 10,
+                      offset: const Offset(0, 5),
+                    ),
+                  ],
                 ),
-                padding: const EdgeInsets.all(24),
+                padding: EdgeInsets.all(isSmallScreen ? 20 : 32),
                 child: Form(
                   key: _formKey,
                   child: Column(
@@ -124,20 +153,20 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       Text(
                         'Create Account',
                         style: TextStyle(
-                          fontSize: 36,
+                          fontSize: isSmallScreen ? 28 : 36,
                           fontWeight: FontWeight.bold,
                           color: Colors.black,
                         ),
                       ),
-                      const SizedBox(height: 40),
+                      SizedBox(height: isSmallScreen ? 30 : 40),
                       Text(
-                        'E-mail',
+                        'User ID',
                         style: TextStyle(fontSize: 16, color: Colors.grey),
                       ),
                       const SizedBox(height: 8),
                       _buildTextField(
                         controller: _emailController,
-                        hintText: 'your.email@example.com',
+                        hintText: 'Enter your user ID',
                         isPassword: false,
                       ),
                       const SizedBox(height: 20),
@@ -211,14 +240,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(30),
         border: Border.all(color: Colors.grey.withOpacity(0.3)),
       ),
       child: TextFormField(
         controller: controller,
         obscureText: isPassword,
-        style: TextStyle(fontSize: 16),
+        style: const TextStyle(fontSize: 16),
         decoration: InputDecoration(
           hintText: hintText,
           hintStyle: TextStyle(color: Colors.grey.withOpacity(0.7)),
@@ -227,6 +256,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
             vertical: 16,
           ),
           border: InputBorder.none,
+          focusedBorder: InputBorder.none, // Remove focus border
+          enabledBorder: InputBorder.none, // Remove enabled border
+          errorBorder: InputBorder.none, // Remove error border
+          disabledBorder: InputBorder.none, // Remove disabled border
+          fillColor: Colors.transparent,
+          filled: true,
           suffixIcon:
               isPasswordField
                   ? IconButton(
@@ -275,83 +310,151 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }
 
   Widget _buildRoleSelector() {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(30),
-        border: Border.all(color: Colors.grey.withOpacity(0.3)),
-      ),
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: DropdownButtonFormField<String>(
-        value: _selectedRole,
-        decoration: InputDecoration(
-          labelText: 'Role',
-          labelStyle: TextStyle(color: Colors.grey),
-          border: InputBorder.none,
+    final isSmallScreen = MediaQuery.of(context).size.width < 600;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('Role', style: TextStyle(fontSize: 16, color: Colors.grey)),
+        const SizedBox(height: 8),
+        Container(
+          decoration: BoxDecoration(
+            color: Theme.of(context).cardColor,
+            borderRadius: BorderRadius.circular(30),
+            border: Border.all(color: Colors.grey.withOpacity(0.3)),
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          child: DropdownButtonFormField<String>(
+            value: _selectedRole,
+            isExpanded: true,
+            hint: Text(
+              'Select your role',
+              style: TextStyle(
+                fontSize: isSmallScreen ? 14 : 16,
+                color: Colors.grey.withOpacity(0.7),
+              ),
+            ),
+            decoration: InputDecoration(
+              border: InputBorder.none,
+              focusedBorder: InputBorder.none,
+              enabledBorder: InputBorder.none,
+              errorBorder: InputBorder.none,
+              disabledBorder: InputBorder.none,
+              contentPadding: EdgeInsets.symmetric(
+                vertical: isSmallScreen ? 12 : 16,
+              ),
+              filled: false,
+            ),
+            dropdownColor: Theme.of(context).cardColor,
+            style: TextStyle(
+              fontSize: isSmallScreen ? 14 : 16,
+              color: Theme.of(context).textTheme.bodyLarge?.color,
+              fontWeight: FontWeight.w400,
+            ),
+            icon: const Icon(Icons.arrow_drop_down, color: Colors.grey),
+            items: [
+              DropdownMenuItem(
+                value: AppConstants.roleStudent,
+                child: Text(
+                  'Student',
+                  style: TextStyle(fontSize: isSmallScreen ? 14 : 16),
+                ),
+              ),
+              DropdownMenuItem(
+                value: AppConstants.roleAdmin,
+                child: Text(
+                  'Admin',
+                  style: TextStyle(fontSize: isSmallScreen ? 14 : 16),
+                ),
+              ),
+            ],
+            onChanged: (value) {
+              setState(() {
+                _selectedRole = value!;
+                if (value != AppConstants.roleStudent) {
+                  _selectedClass = null;
+                }
+              });
+            },
+          ),
         ),
-        style: TextStyle(fontSize: 16, color: Colors.black),
-        dropdownColor: Colors.white,
-        items: [
-          DropdownMenuItem(
-            value: AppConstants.roleStudent,
-            child: const Text('Student'),
-          ),
-          DropdownMenuItem(
-            value: AppConstants.roleAdmin,
-            child: const Text('Admin'),
-          ),
-        ],
-        onChanged: (value) {
-          setState(() {
-            _selectedRole = value!;
-            if (value != AppConstants.roleStudent) {
-              _selectedClass = null;
-            }
-          });
-        },
-      ),
+      ],
     );
   }
 
   Widget _buildClassSelector() {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(30),
-        border: Border.all(color: Colors.grey.withOpacity(0.3)),
-      ),
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: DropdownButtonFormField<String>(
-        value: _selectedClass,
-        decoration: InputDecoration(
-          labelText: 'Class',
-          labelStyle: TextStyle(color: Colors.grey),
-          border: InputBorder.none,
+    final isSmallScreen = MediaQuery.of(context).size.width < 600;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('Class', style: TextStyle(fontSize: 16, color: Colors.grey)),
+        const SizedBox(height: 8),
+        Container(
+          decoration: BoxDecoration(
+            color: Theme.of(context).cardColor,
+            borderRadius: BorderRadius.circular(30),
+            border: Border.all(color: Colors.grey.withOpacity(0.3)),
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          child: DropdownButtonFormField<String>(
+            value: _selectedClass,
+            isExpanded: true,
+            hint: Text(
+              'Select your class',
+              style: TextStyle(
+                fontSize: isSmallScreen ? 14 : 16,
+                color: Colors.grey.withOpacity(0.7),
+              ),
+            ),
+            decoration: InputDecoration(
+              border: InputBorder.none,
+              focusedBorder: InputBorder.none,
+              enabledBorder: InputBorder.none,
+              errorBorder: InputBorder.none,
+              disabledBorder: InputBorder.none,
+              contentPadding: EdgeInsets.symmetric(
+                vertical: isSmallScreen ? 12 : 16,
+              ),
+              filled: false,
+            ),
+            dropdownColor: Theme.of(context).cardColor,
+            style: TextStyle(
+              fontSize: isSmallScreen ? 14 : 16,
+              color: Theme.of(context).textTheme.bodyLarge?.color,
+              fontWeight: FontWeight.w400,
+            ),
+            icon: const Icon(Icons.arrow_drop_down, color: Colors.grey),
+            items:
+                _classes.map((String value) {
+                  return DropdownMenuItem<String>(
+                    value: value,
+                    child: Text(
+                      value,
+                      style: TextStyle(fontSize: isSmallScreen ? 14 : 16),
+                    ),
+                  );
+                }).toList(),
+            validator: (value) {
+              if (_selectedRole == AppConstants.roleStudent &&
+                  (value == null || value.isEmpty)) {
+                return 'Please select a class';
+              }
+              return null;
+            },
+            onChanged: (value) {
+              setState(() {
+                _selectedClass = value;
+              });
+            },
+          ),
         ),
-        style: TextStyle(fontSize: 16, color: Colors.black),
-        dropdownColor: Colors.white,
-        items:
-            _classes.map((String value) {
-              return DropdownMenuItem<String>(value: value, child: Text(value));
-            }).toList(),
-        validator: (value) {
-          if (_selectedRole == AppConstants.roleStudent &&
-              (value == null || value.isEmpty)) {
-            return 'Please select a class';
-          }
-          return null;
-        },
-        onChanged: (value) {
-          setState(() {
-            _selectedClass = value;
-          });
-        },
-      ),
+      ],
     );
   }
 
   Widget _buildRegisterButton() {
-    return SizedBox(
+    return Container(
       width: double.infinity,
       height: 56,
       child: ElevatedButton(
@@ -363,10 +466,20 @@ class _RegisterScreenState extends State<RegisterScreen> {
             borderRadius: BorderRadius.circular(30),
           ),
           elevation: 0,
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
         ),
-        child: const Text(
-          'Sign Up',
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
+        child: Center(
+          // Ensure text is centered
+          child: Text(
+            'Sign Up',
+            textAlign: TextAlign.center, // Center align the text
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w500,
+              letterSpacing:
+                  0.5, // Add slight letter spacing for better readability
+            ),
+          ),
         ),
       ),
     );

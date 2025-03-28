@@ -90,10 +90,13 @@ class _LoginScreenState extends State<LoginScreen>
 
   @override
   Widget build(BuildContext context) {
+    // Get screen size
+    final size = MediaQuery.of(context).size;
+    final isSmallScreen = size.width < 600;
+    final padding = size.width * 0.05; // 5% of screen width for padding
+
     return Scaffold(
-      backgroundColor: const Color(
-        0xFFF8E8C8,
-      ), // Exact cream background color from screenshot
+      backgroundColor: const Color(0xFFF8E8C8),
       body: BlocConsumer<AuthBloc, AuthState>(
         listener: (context, state) {
           if (state is AuthError) {
@@ -117,26 +120,41 @@ class _LoginScreenState extends State<LoginScreen>
             child: Center(
               child: SingleChildScrollView(
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  padding: EdgeInsets.symmetric(horizontal: padding),
                   child: FadeTransition(
                     opacity: _fadeAnimation,
                     child: Container(
-                      width: double.infinity,
+                      width:
+                          isSmallScreen
+                              ? double.infinity
+                              : 600, // Max width on larger screens
+                      constraints: BoxConstraints(
+                        maxWidth: 800, // Maximum width constraint
+                        minHeight: size.height * 0.5, // Minimum height
+                      ),
                       decoration: BoxDecoration(
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(30),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.1),
+                            blurRadius: 20,
+                            offset: const Offset(0, 10),
+                          ),
+                        ],
                       ),
-                      padding: const EdgeInsets.all(24),
+                      padding: EdgeInsets.all(isSmallScreen ? 20 : 32),
                       child: Column(
+                        mainAxisSize: MainAxisSize.min,
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
-                          const SizedBox(height: 20),
-                          _buildRotatedTitle(),
-                          const SizedBox(height: 40),
-                          _buildLoginForm(state),
-                          const SizedBox(height: 30),
-                          _buildEducationIcons(),
-                          const SizedBox(height: 20),
+                          SizedBox(height: size.height * 0.02),
+                          _buildTitle(isSmallScreen),
+                          SizedBox(height: size.height * 0.04),
+                          _buildLoginForm(state, isSmallScreen),
+                          SizedBox(height: size.height * 0.03),
+                          _buildEducationIcons(isSmallScreen),
+                          SizedBox(height: size.height * 0.02),
                           _buildSignUpText(),
                         ],
                       ),
@@ -151,23 +169,22 @@ class _LoginScreenState extends State<LoginScreen>
     );
   }
 
-  Widget _buildRotatedTitle() {
+  Widget _buildTitle(bool isSmallScreen) {
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         Text(
           'Welcome Back',
           style: TextStyle(
-            fontSize: 36,
-            fontWeight: FontWeight.w600,
+            fontSize: isSmallScreen ? 28 : 36,
+            fontWeight: FontWeight.bold,
             color: Colors.black,
           ),
         ),
         Text(
           'to Edutech',
           style: TextStyle(
-            fontSize: 36,
-            fontWeight: FontWeight.w600,
+            fontSize: isSmallScreen ? 28 : 36,
+            fontWeight: FontWeight.bold,
             color: Colors.black,
           ),
         ),
@@ -175,49 +192,64 @@ class _LoginScreenState extends State<LoginScreen>
     );
   }
 
-  Widget _buildLoginForm(AuthState state) {
+  Widget _buildLoginForm(AuthState state, bool isSmallScreen) {
     return Form(
       key: _formKey,
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text('E-mail', style: TextStyle(fontSize: 16, color: Colors.grey)),
-          const SizedBox(height: 8),
           _buildTextField(
             controller: _emailController,
-            hintText: 'hello.nixtio@gmail.com',
+            hintText: 'User ID',
             isPassword: false,
           ),
-          const SizedBox(height: 20),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Password',
-                style: TextStyle(fontSize: 16, color: Colors.grey),
-              ),
-              TextButton(
-                onPressed: () {
-                  // Handle forgot password
-                },
-                child: Text(
-                  'Forgot password?',
-                  style: TextStyle(
-                    color: Colors.grey,
-                    fontWeight: FontWeight.w400,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
+          SizedBox(height: isSmallScreen ? 16 : 20),
           _buildTextField(
             controller: _passwordController,
-            hintText: '************',
-            isPassword: true,
+            hintText: 'Password',
+            isPassword: _obscurePassword,
+            isPasswordField: true,
           ),
-          const SizedBox(height: 30),
-          _buildLoginButton(state),
+          SizedBox(height: isSmallScreen ? 24 : 32),
+          SizedBox(
+            width: double.infinity,
+            height: isSmallScreen ? 48 : 56,
+            child: ElevatedButton(
+              onPressed: state is! AuthLoading ? _login : null,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.black,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                padding: EdgeInsets.zero, // Remove default padding
+              ),
+              child:
+                  state is AuthLoading
+                      ? Center(
+                        child: SizedBox(
+                          height: isSmallScreen ? 20 : 24,
+                          width: isSmallScreen ? 20 : 24,
+                          child: const CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2,
+                          ),
+                        ),
+                      )
+                      : FittedBox(
+                        fit: BoxFit.none,
+                        child: Text(
+                          'Login',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: isSmallScreen ? 16 : 18,
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                      ),
+            ),
+          ),
         ],
       ),
     );
@@ -227,17 +259,18 @@ class _LoginScreenState extends State<LoginScreen>
     required TextEditingController controller,
     required String hintText,
     required bool isPassword,
+    bool isPasswordField = false,
   }) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(30),
         border: Border.all(color: Colors.grey.withOpacity(0.3)),
       ),
       child: TextFormField(
         controller: controller,
-        obscureText: isPassword && _obscurePassword,
-        style: TextStyle(fontSize: 16),
+        obscureText: isPassword,
+        style: const TextStyle(fontSize: 16),
         decoration: InputDecoration(
           hintText: hintText,
           hintStyle: TextStyle(color: Colors.grey.withOpacity(0.7)),
@@ -246,8 +279,14 @@ class _LoginScreenState extends State<LoginScreen>
             vertical: 16,
           ),
           border: InputBorder.none,
+          focusedBorder: InputBorder.none, // Remove focus border
+          enabledBorder: InputBorder.none, // Remove enabled border
+          errorBorder: InputBorder.none, // Remove error border
+          disabledBorder: InputBorder.none, // Remove disabled border
+          fillColor: Colors.transparent,
+          filled: true,
           suffixIcon:
-              isPassword
+              isPasswordField
                   ? IconButton(
                     icon: Icon(
                       _obscurePassword
@@ -265,9 +304,7 @@ class _LoginScreenState extends State<LoginScreen>
         ),
         validator: (value) {
           if (value == null || value.isEmpty) {
-            return isPassword
-                ? 'Please enter your password'
-                : 'Please enter your email';
+            return 'This field is required';
           }
           return null;
         },
@@ -275,101 +312,71 @@ class _LoginScreenState extends State<LoginScreen>
     );
   }
 
-  Widget _buildLoginButton(AuthState state) {
-    return SizedBox(
-      width: double.infinity,
-      height: 56,
-      child: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Colors.black, Color(0xFF333333)],
-            begin: Alignment.centerLeft,
-            end: Alignment.centerRight,
-          ),
-          borderRadius: BorderRadius.circular(30),
-        ),
-        child: ElevatedButton(
-          onPressed: state is AuthLoading ? null : _login,
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.transparent,
-            foregroundColor: Colors.white,
-            shadowColor: Colors.transparent,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(30),
-            ),
-            elevation: 0,
-          ),
-          child:
-              state is AuthLoading
-                  ? const SizedBox(
-                    height: 24,
-                    width: 24,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                    ),
-                  )
-                  : const Text(
-                    'Log in',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
-                  ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildEducationIcons() {
-    // Shuffle the icons to get a random order each time
-    final shuffledIcons = List<IconData>.from(_educationIcons)..shuffle();
+  Widget _buildEducationIcons(bool isSmallScreen) {
+    final List<Map<String, dynamic>> educationItems = [
+      {'color': const Color(0xFFFF6B6B), 'icon': Icons.school},
+      {'color': const Color(0xFF4ECDC4), 'icon': Icons.auto_stories},
+      {'color': const Color(0xFFFFBE0B), 'icon': Icons.science},
+      {'color': const Color(0xFF7400B8), 'icon': Icons.calculate},
+      {'color': const Color(0xFF80ED99), 'icon': Icons.computer},
+    ];
 
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       child: Row(
-        children: List.generate(
-          5, // Show 5 icons
-          (index) {
-            final color = _getRandomColor();
-            return Container(
-              margin: const EdgeInsets.only(right: 12),
-              decoration: BoxDecoration(
-                color: color.withOpacity(0.2),
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: color, width: 2),
-              ),
-              width: 60,
-              height: 60,
-              child: Icon(shuffledIcons[index], color: color, size: 30),
-            );
-          },
-        ),
+        mainAxisAlignment: MainAxisAlignment.center,
+        children:
+            educationItems.map((item) {
+              return Container(
+                margin: EdgeInsets.only(right: isSmallScreen ? 8 : 12),
+                width: isSmallScreen ? 50 : 60,
+                height: isSmallScreen ? 50 : 60,
+                decoration: BoxDecoration(
+                  color: item['color'],
+                  borderRadius: BorderRadius.circular(isSmallScreen ? 12 : 16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: item['color'].withOpacity(0.3),
+                      blurRadius: 8,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Icon(
+                  item['icon'],
+                  size: isSmallScreen ? 24 : 30,
+                  color: Colors.white,
+                ),
+              );
+            }).toList(),
       ),
     );
   }
 
   Widget _buildSignUpText() {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 10),
-      child: GestureDetector(
-        onTap: () {
-          Navigator.of(context).push(
-            MaterialPageRoute(builder: (context) => const RegisterScreen()),
-          );
-        },
-        child: RichText(
-          text: TextSpan(
-            style: TextStyle(color: Colors.grey, fontSize: 16),
-            children: [
-              TextSpan(text: 'New to Rovio? '),
-              TextSpan(
-                text: 'Sign up',
-                style: TextStyle(
-                  decoration: TextDecoration.underline,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black,
-                ),
-              ),
-            ],
+    return GestureDetector(
+      onTap: () {
+        Navigator.of(
+          context,
+        ).push(MaterialPageRoute(builder: (context) => const RegisterScreen()));
+      },
+      child: RichText(
+        text: TextSpan(
+          style: TextStyle(
+            color: Colors.grey,
+            fontSize: MediaQuery.of(context).size.width < 600 ? 14 : 16,
           ),
+          children: const [
+            TextSpan(text: 'New to Edutech? '),
+            TextSpan(
+              text: 'Sign up',
+              style: TextStyle(
+                decoration: TextDecoration.underline,
+                fontWeight: FontWeight.bold,
+                color: Colors.black,
+              ),
+            ),
+          ],
         ),
       ),
     );

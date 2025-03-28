@@ -19,6 +19,9 @@ class StudentDashboard extends StatefulWidget {
 class _StudentDashboardState extends State<StudentDashboard> {
   @override
   Widget build(BuildContext context) {
+    final screenSize = MediaQuery.of(context).size;
+    final isSmallScreen = screenSize.width < 600;
+
     return BlocListener<AuthBloc, AuthState>(
       listenWhen:
           (previous, current) =>
@@ -32,16 +35,14 @@ class _StudentDashboardState extends State<StudentDashboard> {
         }
       },
       child: Scaffold(
-        backgroundColor: const Color(
-          0xFFF8EAC8,
-        ), // Cream background color to match login screen
+        backgroundColor: const Color(0xFFF8EAC8),
         body: CustomScrollView(
           slivers: [
-            _buildAppBar(),
-            SliverToBoxAdapter(child: _buildWelcomeSection()),
+            _buildAppBar(isSmallScreen),
+            SliverToBoxAdapter(child: _buildWelcomeSection(isSmallScreen)),
             SliverPadding(
-              padding: const EdgeInsets.all(16),
-              sliver: _buildClassGrid(),
+              padding: EdgeInsets.all(isSmallScreen ? 12 : 16),
+              sliver: _buildClassGrid(isSmallScreen),
             ),
           ],
         ),
@@ -49,56 +50,75 @@ class _StudentDashboardState extends State<StudentDashboard> {
     );
   }
 
-  Widget _buildAppBar() {
+  Widget _buildAppBar(bool isSmallScreen) {
     return SliverAppBar(
-      expandedHeight: 120,
+      expandedHeight: isSmallScreen ? 100 : 120,
       floating: false,
       pinned: true,
-      automaticallyImplyLeading: false, // This removes the back button
-      backgroundColor: Colors.black, // Black to match login button
+      automaticallyImplyLeading: false,
+      backgroundColor: Colors.black,
       flexibleSpace: FlexibleSpaceBar(
-        titlePadding: const EdgeInsets.only(left: 16, bottom: 16),
+        titlePadding: EdgeInsets.only(
+          left: isSmallScreen ? 12 : 16,
+          bottom: isSmallScreen ? 12 : 16,
+        ),
         title: Text(
           'Student Dashboard',
           style: AppTheme.titleLarge.copyWith(
             color: Colors.white,
             fontWeight: FontWeight.bold,
+            fontSize: isSmallScreen ? 20 : 24,
           ),
         ),
       ),
       actions: [
         IconButton(
-          icon: const Icon(Icons.logout, color: Colors.white),
+          icon: Icon(
+            Icons.logout,
+            color: Colors.white,
+            size: isSmallScreen ? 22 : 24,
+          ),
           onPressed: () => context.read<AuthBloc>().add(LogoutEvent()),
         ),
+        SizedBox(width: isSmallScreen ? 8 : 16),
       ],
     );
   }
 
-  Widget _buildWelcomeSection() {
+  Widget _buildWelcomeSection(bool isSmallScreen) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 24, 16, 16),
+      padding: EdgeInsets.fromLTRB(
+        isSmallScreen ? 12 : 16,
+        isSmallScreen ? 16 : 24,
+        isSmallScreen ? 12 : 16,
+        isSmallScreen ? 12 : 16,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: [
           Text(
             'Welcome Student',
             style: AppTheme.headlineMedium.copyWith(
               color: Colors.black,
               fontWeight: FontWeight.bold,
+              fontSize: isSmallScreen ? 24 : 28,
             ),
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: isSmallScreen ? 6 : 8),
           Text(
             'Access your learning materials',
-            style: AppTheme.bodyLarge.copyWith(color: Colors.black54),
+            style: AppTheme.bodyLarge.copyWith(
+              color: Colors.black54,
+              fontSize: isSmallScreen ? 14 : 16,
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildClassGrid() {
+  Widget _buildClassGrid(bool isSmallScreen) {
     final List<Map<String, dynamic>> classes = [
       {'name': 'Play Group', 'icon': Icons.child_care, 'color': Colors.black},
       {
@@ -120,25 +140,32 @@ class _StudentDashboardState extends State<StudentDashboard> {
     ];
 
     return SliverGrid(
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        childAspectRatio: 1.2,
-        crossAxisSpacing: 16,
-        mainAxisSpacing: 16,
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: isSmallScreen ? 2 : 3,
+        childAspectRatio: isSmallScreen ? 1.1 : 1.3,
+        crossAxisSpacing: isSmallScreen ? 12 : 16,
+        mainAxisSpacing: isSmallScreen ? 12 : 16,
       ),
       delegate: SliverChildBuilderDelegate((context, index) {
         final className = classes[index]['name'] as String;
         final iconData = classes[index]['icon'] as IconData;
         final color = classes[index]['color'] as Color;
-        return _buildClassCard(className, iconData, color);
+        return _buildClassCard(className, iconData, color, isSmallScreen);
       }, childCount: classes.length),
     );
   }
 
-  Widget _buildClassCard(String className, IconData icon, Color color) {
+  Widget _buildClassCard(
+    String className,
+    IconData icon,
+    Color color,
+    bool isSmallScreen,
+  ) {
     return Card(
       elevation: 0,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(isSmallScreen ? 16 : 20),
+      ),
       child: InkWell(
         onTap:
             () => Navigator.push(
@@ -148,6 +175,7 @@ class _StudentDashboardState extends State<StudentDashboard> {
                     (context) => SubjectSelectionScreen(className: className),
               ),
             ),
+        borderRadius: BorderRadius.circular(isSmallScreen ? 16 : 20),
         child: Container(
           decoration: BoxDecoration(
             gradient: LinearGradient(
@@ -155,11 +183,11 @@ class _StudentDashboardState extends State<StudentDashboard> {
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(isSmallScreen ? 16 : 20),
             boxShadow: [
               BoxShadow(
                 color: color.withOpacity(0.2),
-                blurRadius: 8,
+                blurRadius: isSmallScreen ? 6 : 8,
                 offset: const Offset(0, 4),
               ),
             ],
@@ -171,29 +199,34 @@ class _StudentDashboardState extends State<StudentDashboard> {
                 bottom: -20,
                 child: Icon(
                   icon,
-                  size: 100,
+                  size: isSmallScreen ? 80 : 100,
                   color: Colors.white.withOpacity(0.2),
                 ),
               ),
               Padding(
-                padding: const EdgeInsets.all(20),
+                padding: EdgeInsets.all(isSmallScreen ? 16 : 20),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(icon, color: Colors.white, size: 32),
+                    Icon(
+                      icon,
+                      color: Colors.white,
+                      size: isSmallScreen ? 28 : 32,
+                    ),
                     const Spacer(),
                     Text(
                       className,
                       style: AppTheme.titleLarge.copyWith(
                         color: Colors.white,
-                        fontSize: 18,
+                        fontSize: isSmallScreen ? 16 : 18,
                       ),
                     ),
-                    const SizedBox(height: 8),
+                    SizedBox(height: isSmallScreen ? 6 : 8),
                     Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 6,
+                      padding: EdgeInsets.symmetric(
+                        horizontal: isSmallScreen ? 10 : 12,
+                        vertical: isSmallScreen ? 4 : 6,
                       ),
                       decoration: BoxDecoration(
                         color: Colors.white.withOpacity(0.2),
@@ -203,7 +236,7 @@ class _StudentDashboardState extends State<StudentDashboard> {
                         'Explore Subjects',
                         style: AppTheme.bodyMedium.copyWith(
                           color: Colors.white,
-                          fontSize: 12,
+                          fontSize: isSmallScreen ? 10 : 12,
                         ),
                       ),
                     ),

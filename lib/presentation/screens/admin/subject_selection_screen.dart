@@ -36,6 +36,9 @@ class _AdminSubjectSelectionScreenState
 
   @override
   Widget build(BuildContext context) {
+    final screenSize = MediaQuery.of(context).size;
+    final isSmallScreen = screenSize.width < 600;
+
     return BlocListener<AuthBloc, AuthState>(
       listenWhen:
           (previous, current) =>
@@ -56,7 +59,10 @@ class _AdminSubjectSelectionScreenState
           ),
           title: Text(
             'Manage Content - ${widget.className}',
-            style: AppTheme.titleLarge.copyWith(fontWeight: FontWeight.bold),
+            style: AppTheme.titleLarge.copyWith(
+              fontWeight: FontWeight.bold,
+              fontSize: isSmallScreen ? 18 : 20,
+            ),
           ),
           actions: [
             IconButton(
@@ -69,58 +75,69 @@ class _AdminSubjectSelectionScreenState
         ),
         body: Column(
           children: [
-            _buildWelcomeSection(),
+            _buildWelcomeSection(isSmallScreen),
             const SizedBox(height: 16),
-            Expanded(child: _buildSubjectGrid()),
+            Expanded(child: _buildSubjectGrid(isSmallScreen)),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildWelcomeSection() {
+  Widget _buildWelcomeSection(bool isSmallScreen) {
     return BlocBuilder<AuthBloc, AuthState>(
       builder: (context, state) {
         if (state is Authenticated) {
           return Container(
-            padding: const EdgeInsets.all(16),
-            color: AppTheme.primaryColor.withOpacity(0.1),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            padding: EdgeInsets.all(isSmallScreen ? 16 : 24),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.05),
+                  blurRadius: 5,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Row(
               children: [
-                Row(
-                  children: [
-                    CircleAvatar(
-                      backgroundColor: AppTheme.primaryColor,
-                      radius: 24,
-                      child: Text(
-                        state.user.username.substring(0, 1).toUpperCase(),
-                        style: const TextStyle(
-                          color: Colors.white,
+                CircleAvatar(
+                  backgroundColor: AppTheme.primaryColor.withOpacity(0.1),
+                  radius: isSmallScreen ? 24 : 28,
+                  child: Icon(
+                    Icons.person,
+                    color: AppTheme.primaryColor,
+                    size: isSmallScreen ? 24 : 28,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        'Welcome, ${state.user.username}',
+                        style: TextStyle(
+                          fontSize: isSmallScreen ? 16 : 18,
                           fontWeight: FontWeight.bold,
-                          fontSize: 18,
                         ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
-                    ),
-                    const SizedBox(width: 12),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Welcome, ${state.user.username}',
-                          style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Managing content for ${widget.className}',
+                        style: TextStyle(
+                          fontSize: isSmallScreen ? 12 : 14,
+                          color: Colors.black54,
                         ),
-                        const SizedBox(height: 4),
-                        Text(
-                          'Managing content for ${widget.className}',
-                          style: TextStyle(fontSize: 14, color: Colors.black54),
-                        ),
-                      ],
-                    ),
-                  ],
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
@@ -131,57 +148,66 @@ class _AdminSubjectSelectionScreenState
     );
   }
 
-  Widget _buildSubjectGrid() {
+  Widget _buildSubjectGrid(bool isSmallScreen) {
     return GridView.builder(
-      padding: const EdgeInsets.all(16),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        crossAxisSpacing: 16,
-        mainAxisSpacing: 16,
-        childAspectRatio: 1.5,
+      padding: EdgeInsets.all(isSmallScreen ? 12 : 16),
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: isSmallScreen ? 2 : 3,
+        crossAxisSpacing: isSmallScreen ? 12 : 16,
+        mainAxisSpacing: isSmallScreen ? 12 : 16,
+        childAspectRatio: isSmallScreen ? 1.3 : 1.5,
       ),
       itemCount: _subjects.length,
       itemBuilder: (context, index) {
-        final subject = _subjects[index];
-        return Card(
-          elevation: 4,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: InkWell(
-            onTap: () => _showContentManagementDialog(subject),
-            child: Container(
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(12),
-                gradient: LinearGradient(
-                  colors: [
-                    AppTheme.primaryColor.withOpacity(0.7),
-                    AppTheme.primaryColor.withOpacity(0.5),
-                  ],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-              ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    subject,
-                    style: const TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 8),
-                  const Icon(Icons.upload_file, color: Colors.white, size: 32),
-                ],
-              ),
+        return _buildSubjectCard(_subjects[index], isSmallScreen);
+      },
+    );
+  }
+
+  Widget _buildSubjectCard(String subject, bool isSmallScreen) {
+    return Card(
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(isSmallScreen ? 12 : 16),
+      ),
+      child: InkWell(
+        onTap: () => _showContentManagementDialog(subject),
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(isSmallScreen ? 12 : 16),
+            gradient: LinearGradient(
+              colors: [
+                AppTheme.primaryColor.withOpacity(0.7),
+                AppTheme.primaryColor.withOpacity(0.5),
+              ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
             ),
           ),
-        );
-      },
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                subject,
+                style: TextStyle(
+                  fontSize: isSmallScreen ? 16 : 20,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+                textAlign: TextAlign.center,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+              SizedBox(height: isSmallScreen ? 8 : 12),
+              Icon(
+                Icons.upload_file,
+                color: Colors.white,
+                size: isSmallScreen ? 28 : 32,
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 
