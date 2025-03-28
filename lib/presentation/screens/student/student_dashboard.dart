@@ -54,6 +54,7 @@ class _StudentDashboardState extends State<StudentDashboard> {
       expandedHeight: 120,
       floating: false,
       pinned: true,
+      automaticallyImplyLeading: false, // This removes the back button
       backgroundColor: Colors.black, // Black to match login button
       flexibleSpace: FlexibleSpaceBar(
         titlePadding: const EdgeInsets.only(left: 16, bottom: 16),
