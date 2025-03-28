@@ -152,29 +152,26 @@ class _LoginScreenState extends State<LoginScreen>
   }
 
   Widget _buildRotatedTitle() {
-    return Transform.rotate(
-      angle: -0.1, // Slight rotation as shown in the image
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Text(
-            'Welcome Back',
-            style: TextStyle(
-              fontSize: 36,
-              fontWeight: FontWeight.bold,
-              color: Colors.black,
-            ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Text(
+          'Welcome Back',
+          style: TextStyle(
+            fontSize: 36,
+            fontWeight: FontWeight.bold,
+            color: Colors.black,
           ),
-          Text(
-            'to Rovio',
-            style: TextStyle(
-              fontSize: 36,
-              fontWeight: FontWeight.bold,
-              color: Colors.black,
-            ),
+        ),
+        Text(
+          'to Rovio',
+          style: TextStyle(
+            fontSize: 36,
+            fontWeight: FontWeight.bold,
+            color: Colors.black,
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
