@@ -32,11 +32,13 @@ class _StudentDashboardState extends State<StudentDashboard> {
         }
       },
       child: Scaffold(
+        backgroundColor: const Color(
+          0xFFF8EAC8,
+        ), // Cream background color to match login screen
         body: CustomScrollView(
           slivers: [
             _buildAppBar(),
             SliverToBoxAdapter(child: _buildWelcomeSection()),
-            SliverToBoxAdapter(child: _buildFeaturedSection()),
             SliverPadding(
               padding: const EdgeInsets.all(16),
               sliver: _buildClassGrid(),
@@ -49,47 +51,23 @@ class _StudentDashboardState extends State<StudentDashboard> {
 
   Widget _buildAppBar() {
     return SliverAppBar(
-      expandedHeight: 200,
+      expandedHeight: 120,
       floating: false,
       pinned: true,
+      backgroundColor: Colors.black, // Black to match login button
       flexibleSpace: FlexibleSpaceBar(
-        title: const Text('Student Dashboard'),
-        background: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [
-                AppTheme.primaryColor,
-                AppTheme.primaryColor.withOpacity(0.8),
-              ],
-            ),
-          ),
-          child: Stack(
-            children: [
-              Positioned(
-                right: -50,
-                top: -50,
-                child: CircleAvatar(
-                  radius: 100,
-                  backgroundColor: Colors.white.withOpacity(0.1),
-                ),
-              ),
-              Positioned(
-                left: -30,
-                bottom: -30,
-                child: CircleAvatar(
-                  radius: 80,
-                  backgroundColor: Colors.white.withOpacity(0.1),
-                ),
-              ),
-            ],
+        titlePadding: const EdgeInsets.only(left: 16, bottom: 16),
+        title: Text(
+          'Student Dashboard',
+          style: AppTheme.titleLarge.copyWith(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
           ),
         ),
       ),
       actions: [
         IconButton(
-          icon: const Icon(Icons.logout),
+          icon: const Icon(Icons.logout, color: Colors.white),
           onPressed: () => context.read<AuthBloc>().add(LogoutEvent()),
         ),
       ],
@@ -97,130 +75,22 @@ class _StudentDashboardState extends State<StudentDashboard> {
   }
 
   Widget _buildWelcomeSection() {
-    return BlocBuilder<AuthBloc, AuthState>(
-      builder: (context, state) {
-        if (state is Authenticated) {
-          return Container(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    CircleAvatar(
-                      backgroundColor: AppTheme.primaryColor,
-                      radius: 30,
-                      child: Text(
-                        state.user.username.substring(0, 1).toUpperCase(),
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Welcome back,',
-                          style: TextStyle(
-                            fontSize: 16,
-                            color: Colors.grey[600],
-                          ),
-                        ),
-                        Text(
-                          state.user.username,
-                          style: const TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          );
-        }
-        return const SizedBox.shrink();
-      },
-    );
-  }
-
-  Widget _buildFeaturedSection() {
-    return Container(
-      padding: const EdgeInsets.all(16),
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 24, 16, 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Start Learning', style: AppTheme.headlineLarge),
+          Text(
+            'Welcome Student',
+            style: AppTheme.headlineMedium.copyWith(
+              color: Colors.black,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
           const SizedBox(height: 8),
           Text(
-            'Choose your class to begin your learning journey',
-            style: AppTheme.bodyLarge.copyWith(color: Colors.grey[600]),
-          ),
-          const SizedBox(height: 16),
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Row(
-              children: [
-                _buildQuickAccessCard(
-                  'Continue Learning',
-                  'Resume where you left off',
-                  Icons.play_circle_filled,
-                  Colors.blue,
-                ),
-                _buildQuickAccessCard(
-                  'My Progress',
-                  'Track your achievements',
-                  Icons.bar_chart,
-                  Colors.green,
-                ),
-                _buildQuickAccessCard(
-                  'Bookmarks',
-                  'Your saved content',
-                  Icons.bookmark,
-                  Colors.orange,
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildQuickAccessCard(
-    String title,
-    String subtitle,
-    IconData icon,
-    Color color,
-  ) {
-    return Container(
-      width: 160,
-      margin: const EdgeInsets.only(right: 16),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: color.withOpacity(0.3)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(icon, color: color, size: 32),
-          const SizedBox(height: 12),
-          Text(
-            title,
-            style: AppTheme.labelLarge.copyWith(color: color.withOpacity(0.8)),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            subtitle,
-            style: AppTheme.bodyMedium.copyWith(color: color.withOpacity(0.6)),
+            'Access your learning materials',
+            style: AppTheme.bodyLarge.copyWith(color: Colors.black54),
           ),
         ],
       ),
@@ -229,19 +99,23 @@ class _StudentDashboardState extends State<StudentDashboard> {
 
   Widget _buildClassGrid() {
     final List<Map<String, dynamic>> classes = [
-      {'name': 'Play Group', 'icon': Icons.child_care},
-      {'name': 'Nursery', 'icon': Icons.child_friendly},
-      {'name': 'KG', 'icon': Icons.auto_stories},
-      {'name': 'Class 1', 'icon': Icons.looks_one},
-      {'name': 'Class 2', 'icon': Icons.looks_two},
-      {'name': 'Class 3', 'icon': Icons.looks_3},
-      {'name': 'Class 4', 'icon': Icons.looks_4},
-      {'name': 'Class 5', 'icon': Icons.looks_5},
-      {'name': 'Class 6', 'icon': Icons.looks_6},
-      {'name': 'Class 7', 'icon': Icons.grade},
-      {'name': 'Class 8', 'icon': Icons.school},
-      {'name': 'Class 9', 'icon': Icons.menu_book},
-      {'name': 'Class 10', 'icon': Icons.psychology},
+      {'name': 'Play Group', 'icon': Icons.child_care, 'color': Colors.black},
+      {
+        'name': 'Nursery',
+        'icon': Icons.child_friendly,
+        'color': Colors.black87,
+      },
+      {'name': 'KG', 'icon': Icons.auto_stories, 'color': Colors.black},
+      {'name': 'Class 1', 'icon': Icons.looks_one, 'color': Colors.black87},
+      {'name': 'Class 2', 'icon': Icons.looks_two, 'color': Colors.black},
+      {'name': 'Class 3', 'icon': Icons.looks_3, 'color': Colors.black87},
+      {'name': 'Class 4', 'icon': Icons.looks_4, 'color': Colors.black},
+      {'name': 'Class 5', 'icon': Icons.looks_5, 'color': Colors.black87},
+      {'name': 'Class 6', 'icon': Icons.looks_6, 'color': Colors.black},
+      {'name': 'Class 7', 'icon': Icons.grade, 'color': Colors.black87},
+      {'name': 'Class 8', 'icon': Icons.school, 'color': Colors.black},
+      {'name': 'Class 9', 'icon': Icons.menu_book, 'color': Colors.black87},
+      {'name': 'Class 10', 'icon': Icons.psychology, 'color': Colors.black},
     ];
 
     return SliverGrid(
@@ -254,92 +128,89 @@ class _StudentDashboardState extends State<StudentDashboard> {
       delegate: SliverChildBuilderDelegate((context, index) {
         final className = classes[index]['name'] as String;
         final iconData = classes[index]['icon'] as IconData;
-        return _buildClassCard(className, iconData);
+        final color = classes[index]['color'] as Color;
+        return _buildClassCard(className, iconData, color);
       }, childCount: classes.length),
     );
   }
 
-  Widget _buildClassCard(String className, IconData icon) {
-    return InkWell(
-      onTap:
-          () => Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder:
-                  (context) => SubjectSelectionScreen(className: className),
-            ),
-          ),
-      child: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [
-              AppTheme.primaryColor.withOpacity(0.8),
-              AppTheme.primaryColor.withOpacity(0.6),
-            ],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.grey.withOpacity(0.3),
-              blurRadius: 8,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: Stack(
-          children: [
-            Positioned(
-              right: -20,
-              bottom: -20,
-              child: Icon(
-                icon,
-                size: 100,
-                color: Colors.white.withOpacity(0.2),
+  Widget _buildClassCard(String className, IconData icon, Color color) {
+    return Card(
+      elevation: 0,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      child: InkWell(
+        onTap:
+            () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder:
+                    (context) => SubjectSelectionScreen(className: className),
               ),
             ),
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(16),
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [
-                    Colors.white.withOpacity(0.15),
-                    Colors.white.withOpacity(0.05),
+        child: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [color, color.withOpacity(0.8)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: [
+              BoxShadow(
+                color: color.withOpacity(0.2),
+                blurRadius: 8,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Stack(
+            children: [
+              Positioned(
+                right: -20,
+                bottom: -20,
+                child: Icon(
+                  icon,
+                  size: 100,
+                  color: Colors.white.withOpacity(0.2),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Icon(icon, color: Colors.white, size: 32),
+                    const Spacer(),
+                    Text(
+                      className,
+                      style: AppTheme.titleLarge.copyWith(
+                        color: Colors.white,
+                        fontSize: 18,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.2),
+                        borderRadius: BorderRadius.circular(30),
+                      ),
+                      child: Text(
+                        'Explore Subjects',
+                        style: AppTheme.bodyMedium.copyWith(
+                          color: Colors.white,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ),
                   ],
                 ),
               ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Icon(icon, color: Colors.white, size: 32),
-                  const SizedBox(height: 16),
-                  Text(
-                    className,
-                    style: AppTheme.titleLarge.copyWith(color: Colors.white),
-                  ),
-                  const SizedBox(height: 8),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.2),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Text(
-                      'Explore Subjects',
-                      style: AppTheme.bodyMedium.copyWith(color: Colors.white),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

@@ -50,7 +50,14 @@ class _AdminSubjectSelectionScreenState
       },
       child: Scaffold(
         appBar: AppBar(
-          title: Text('Manage Content - ${widget.className}'),
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () => Navigator.pop(context),
+          ),
+          title: Text(
+            'Manage Content - ${widget.className}',
+            style: AppTheme.titleLarge.copyWith(fontWeight: FontWeight.bold),
+          ),
           actions: [
             IconButton(
               icon: const Icon(Icons.logout),

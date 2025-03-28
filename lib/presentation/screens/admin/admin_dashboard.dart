@@ -48,28 +48,19 @@ class _AdminDashboardState extends State<AdminDashboard> {
           );
         }
       },
-      child: MultiBlocListener(
-        listeners: [
-          BlocListener<FileBloc, FileState>(
-            listener: (context, state) {
-              if (state is FileUploaded || state is FileDeleted) {
-                // Reload files after upload or delete
-                _loadFiles();
-              }
-            },
-          ),
-        ],
-        child: Scaffold(
-          body: CustomScrollView(
-            slivers: [
-              _buildAppBar(),
-              SliverToBoxAdapter(child: _buildWelcomeSection()),
-              SliverPadding(
-                padding: const EdgeInsets.all(16),
-                sliver: _buildAdminActions(),
-              ),
-            ],
-          ),
+      child: Scaffold(
+        backgroundColor: const Color(
+          0xFFF8EAC8,
+        ), // Cream background color to match login screen
+        body: CustomScrollView(
+          slivers: [
+            _buildAppBar(),
+            SliverToBoxAdapter(child: _buildWelcomeSection()),
+            SliverPadding(
+              padding: const EdgeInsets.all(16),
+              sliver: _buildActionGrid(),
+            ),
+          ],
         ),
       ),
     );
@@ -77,24 +68,22 @@ class _AdminDashboardState extends State<AdminDashboard> {
 
   Widget _buildAppBar() {
     return SliverAppBar(
-      expandedHeight: 200,
+      expandedHeight: 120,
       floating: false,
       pinned: true,
+      backgroundColor: Colors.black, // Black to match login button
       flexibleSpace: FlexibleSpaceBar(
+        titlePadding: const EdgeInsets.only(left: 16, bottom: 16),
         title: Text(
           'Admin Dashboard',
-          style: AppTheme.titleLarge.copyWith(color: Colors.white),
+          style: AppTheme.titleLarge.copyWith(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+          ),
         ),
         background: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [
-                AppTheme.primaryColor,
-                AppTheme.primaryColor.withOpacity(0.8),
-              ],
-            ),
+          decoration: const BoxDecoration(
+            color: Colors.black, // Solid black to match login button
           ),
         ),
       ),
@@ -108,53 +97,34 @@ class _AdminDashboardState extends State<AdminDashboard> {
   }
 
   Widget _buildWelcomeSection() {
-    return BlocBuilder<AuthBloc, AuthState>(
-      builder: (context, state) {
-        if (state is Authenticated) {
-          return Container(
-            padding: const EdgeInsets.all(24),
-            child: Row(
-              children: [
-                CircleAvatar(
-                  backgroundColor: AppTheme.primaryColor,
-                  radius: 30,
-                  child: Text(
-                    state.user.username.substring(0, 1).toUpperCase(),
-                    style: AppTheme.headlineMedium.copyWith(
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Welcome back,',
-                        style: AppTheme.bodyLarge.copyWith(
-                          color: Colors.grey[600],
-                        ),
-                      ),
-                      Text(state.user.username, style: AppTheme.headlineMedium),
-                    ],
-                  ),
-                ),
-              ],
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 24, 16, 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Welcome Admin',
+            style: AppTheme.headlineMedium.copyWith(
+              color: Colors.black,
+              fontWeight: FontWeight.bold,
             ),
-          );
-        }
-        return const SizedBox.shrink();
-      },
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Manage your school content',
+            style: AppTheme.bodyLarge.copyWith(color: Colors.black54),
+          ),
+        ],
+      ),
     );
   }
 
-  Widget _buildAdminActions() {
+  Widget _buildActionGrid() {
     final actions = [
       {
         'title': 'Manage Courses',
         'icon': Icons.book,
-        'color': Colors.blue,
+        'color': Colors.black,
         'onTap':
             () => Navigator.of(context).push(
               MaterialPageRoute(
@@ -165,7 +135,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
       {
         'title': 'Upload Statistics',
         'icon': Icons.analytics,
-        'color': Colors.purple,
+        'color': Colors.black87,
         'isStats': true,
       },
     ];
@@ -203,18 +173,25 @@ class _AdminDashboardState extends State<AdminDashboard> {
   }) {
     return Card(
       elevation: 0,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(20),
         child: Container(
           decoration: BoxDecoration(
             gradient: LinearGradient(
+              colors: [color, color.withOpacity(0.8)],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: [color.withOpacity(0.8), color.withOpacity(0.6)],
             ),
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.1),
+                blurRadius: 8,
+                offset: const Offset(0, 4),
+              ),
+            ],
           ),
           child: Stack(
             children: [
@@ -237,6 +214,23 @@ class _AdminDashboardState extends State<AdminDashboard> {
                     Text(
                       title,
                       style: AppTheme.titleLarge.copyWith(color: Colors.white),
+                    ),
+                    const SizedBox(height: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.2),
+                        borderRadius: BorderRadius.circular(30),
+                      ),
+                      child: Text(
+                        'Manage',
+                        style: AppTheme.bodyMedium.copyWith(
+                          color: Colors.white,
+                        ),
+                      ),
                     ),
                   ],
                 ),
@@ -263,16 +257,16 @@ class _AdminDashboardState extends State<AdminDashboard> {
         return Card(
           elevation: 0,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(20),
           ),
           child: Container(
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
-                colors: [color.withOpacity(0.8), color.withOpacity(0.6)],
+                colors: [color, color.withOpacity(0.8)],
               ),
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(20),
             ),
             child: Stack(
               children: [

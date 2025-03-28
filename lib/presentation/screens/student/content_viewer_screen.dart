@@ -37,21 +37,64 @@ class _ContentViewerScreenState extends State<ContentViewerScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('${widget.subject} Content')),
+      backgroundColor: const Color(
+        0xFFF8EAC8,
+      ), // Cream background color to match login screen
+      appBar: AppBar(
+        backgroundColor: Colors.black, // Black to match login button
+        title: Text(
+          '${widget.subject} Content',
+          style: AppTheme.titleLarge.copyWith(
+            color: Colors.white,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        iconTheme: const IconThemeData(color: Colors.white),
+        elevation: 0,
+      ),
       body: BlocBuilder<FileBloc, FileState>(
         builder: (context, state) {
           if (state is FileLoading) {
-            return const Center(child: CircularProgressIndicator());
+            return Center(
+              child: CircularProgressIndicator(
+                color: Colors.black, // Black to match theme
+                strokeWidth: 3,
+              ),
+            );
           }
 
           if (state is FileError) {
-            return Center(child: Text('Error: ${state.message}'));
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.error_outline, size: 60, color: Colors.black54),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Error: ${state.message}',
+                    style: AppTheme.bodyLarge.copyWith(color: Colors.black54),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
+            );
           }
 
           if (state is FilesLoaded) {
             if (state.files.isEmpty) {
-              return const Center(
-                child: Text('No content available for this subject'),
+              return Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.folder_open, size: 60, color: Colors.black54),
+                    const SizedBox(height: 16),
+                    Text(
+                      'No content available for this subject',
+                      style: AppTheme.bodyLarge.copyWith(color: Colors.black54),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                ),
               );
             }
 
@@ -60,54 +103,109 @@ class _ContentViewerScreenState extends State<ContentViewerScreen> {
               itemCount: state.files.length,
               itemBuilder: (context, index) {
                 final file = state.files[index];
-                return Card(
-                  margin: const EdgeInsets.only(bottom: 12),
-                  child: ListTile(
-                    leading: Icon(
-                      file.fileType == AppConstants.typePdf
-                          ? Icons.picture_as_pdf
-                          : Icons.flash_on,
-                      color: AppTheme.primaryColor,
-                      size: 32,
-                    ),
-                    title: Text(
-                      file.title,
-                      style: const TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                    subtitle: Text('Type: ${file.fileType}'),
-                    onTap: () {
-                      if (file.fileType == AppConstants.typePdf) {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder:
-                                (context) => PdfViewer(
-                                  filePath: file.filePath,
-                                  title: file.title,
-                                ),
-                          ),
-                        );
-                      } else {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder:
-                                (context) => HtmlViewer(
-                                  filePath: file.filePath,
-                                  title: file.title,
-                                ),
-                          ),
-                        );
-                      }
-                    },
-                  ),
-                );
+                return _buildFileCard(file);
               },
             );
           }
 
           return const SizedBox.shrink();
         },
+      ),
+    );
+  }
+
+  Widget _buildFileCard(dynamic file) {
+    final bool isPdf = file.fileType == AppConstants.typePdf;
+
+    return Card(
+      margin: const EdgeInsets.only(bottom: 16),
+      elevation: 0,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(20),
+        onTap: () {
+          if (isPdf) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder:
+                    (context) =>
+                        PdfViewer(filePath: file.filePath, title: file.title),
+              ),
+            );
+          } else {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder:
+                    (context) =>
+                        HtmlViewer(filePath: file.filePath, title: file.title),
+              ),
+            );
+          }
+        },
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: Colors.black.withOpacity(0.1), width: 1),
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 60,
+                height: 60,
+                decoration: BoxDecoration(
+                  color: Colors.black.withOpacity(0.05),
+                  borderRadius: BorderRadius.circular(15),
+                ),
+                child: Center(
+                  child: Icon(
+                    isPdf ? Icons.picture_as_pdf : Icons.flash_on,
+                    color: Colors.black,
+                    size: 30,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      file.title,
+                      style: AppTheme.labelLarge.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Type: ${file.fileType}',
+                      style: AppTheme.bodyMedium.copyWith(
+                        color: Colors.black54,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: Colors.black,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(
+                  Icons.arrow_forward,
+                  color: Colors.white,
+                  size: 20,
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

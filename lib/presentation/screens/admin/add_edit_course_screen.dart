@@ -157,9 +157,16 @@ class _AddEditCourseScreenState extends State<AddEditCourseScreen> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Navigator.pop(context),
+        ),
         title: Text(
           _isEditing ? 'Edit Course' : 'Add Course',
-          style: AppTheme.titleLarge.copyWith(color: AppTheme.primaryColor),
+          style: AppTheme.titleLarge.copyWith(
+            color: AppTheme.primaryColor,
+            fontWeight: FontWeight.bold,
+          ),
         ),
         backgroundColor: Colors.white,
         elevation: 0,

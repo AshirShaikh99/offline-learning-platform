@@ -20,7 +20,7 @@ class RegisterScreen extends StatefulWidget {
 
 class _RegisterScreenState extends State<RegisterScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _usernameController = TextEditingController();
+  final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
   String _selectedRole = AppConstants.roleStudent;
@@ -43,7 +43,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   @override
   void dispose() {
-    _usernameController.dispose();
+    _emailController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
     super.dispose();
@@ -60,7 +60,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
       final user = User(
         id: const Uuid().v4(),
-        username: _usernameController.text.trim(),
+        username: _emailController.text.trim(),
         password: _passwordController.text.trim(),
         role: _selectedRole,
         className:
@@ -76,7 +76,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Register')),
+      backgroundColor: const Color(0xFFF8EAC8), // Cream background color
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+      ),
       body: BlocListener<AuthBloc, AuthState>(
         listener: (context, state) {
           if (state is Authenticated) {
@@ -96,159 +104,247 @@ class _RegisterScreenState extends State<RegisterScreen> {
           }
         },
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16.0),
+          padding: const EdgeInsets.all(24.0),
           child: Form(
             key: _formKey,
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                TextFormField(
-                  controller: _usernameController,
-                  decoration: const InputDecoration(
-                    labelText: 'Username',
-                    prefixIcon: Icon(Icons.person),
+                Transform.rotate(
+                  angle: -0.1,
+                  child: const Text(
+                    'Create Account',
+                    style: TextStyle(
+                      fontSize: 36,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
+                    ),
                   ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter a username';
-                    }
-                    return null;
-                  },
                 ),
-                const SizedBox(height: 16),
-                TextFormField(
+                const SizedBox(height: 40),
+                Text(
+                  'E-mail',
+                  style: TextStyle(fontSize: 16, color: Colors.black54),
+                ),
+                const SizedBox(height: 8),
+                _buildTextField(
+                  controller: _emailController,
+                  hintText: 'your.email@example.com',
+                  isPassword: false,
+                ),
+                const SizedBox(height: 20),
+                Text(
+                  'Password',
+                  style: TextStyle(fontSize: 16, color: Colors.black54),
+                ),
+                const SizedBox(height: 8),
+                _buildTextField(
                   controller: _passwordController,
-                  obscureText: _obscurePassword,
-                  decoration: InputDecoration(
-                    labelText: 'Password',
-                    prefixIcon: const Icon(Icons.lock),
-                    suffixIcon: IconButton(
-                      icon: Icon(
-                        _obscurePassword
-                            ? Icons.visibility
-                            : Icons.visibility_off,
-                      ),
-                      onPressed: () {
-                        setState(() {
-                          _obscurePassword = !_obscurePassword;
-                        });
-                      },
-                    ),
-                  ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter a password';
-                    }
-                    if (value.length < 6) {
-                      return 'Password must be at least 6 characters';
-                    }
-                    return null;
-                  },
+                  hintText: '************',
+                  isPassword: true,
+                  isPasswordField: true,
                 ),
-                const SizedBox(height: 16),
-                TextFormField(
+                const SizedBox(height: 20),
+                Text(
+                  'Confirm Password',
+                  style: TextStyle(fontSize: 16, color: Colors.black54),
+                ),
+                const SizedBox(height: 8),
+                _buildTextField(
                   controller: _confirmPasswordController,
-                  obscureText: _obscureConfirmPassword,
-                  decoration: InputDecoration(
-                    labelText: 'Confirm Password',
-                    prefixIcon: const Icon(Icons.lock),
-                    suffixIcon: IconButton(
-                      icon: Icon(
-                        _obscureConfirmPassword
-                            ? Icons.visibility
-                            : Icons.visibility_off,
-                      ),
-                      onPressed: () {
-                        setState(() {
-                          _obscureConfirmPassword = !_obscureConfirmPassword;
-                        });
-                      },
-                    ),
-                  ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please confirm your password';
-                    }
-                    if (value != _passwordController.text) {
-                      return 'Passwords do not match';
-                    }
-                    return null;
-                  },
+                  hintText: '************',
+                  isPassword: _obscureConfirmPassword,
+                  isConfirmPasswordField: true,
                 ),
-                const SizedBox(height: 16),
-                DropdownButtonFormField<String>(
-                  value: _selectedRole,
-                  decoration: const InputDecoration(
-                    labelText: 'Role',
-                    prefixIcon: Icon(Icons.person_outline),
-                  ),
-                  items: [
-                    DropdownMenuItem(
-                      value: AppConstants.roleStudent,
-                      child: const Text('Student'),
-                    ),
-                    DropdownMenuItem(
-                      value: AppConstants.roleAdmin,
-                      child: const Text('Admin'),
-                    ),
-                  ],
-                  onChanged: (value) {
-                    setState(() {
-                      _selectedRole = value!;
-                      if (value != AppConstants.roleStudent) {
-                        _selectedClass = null;
-                      }
-                    });
-                  },
-                ),
+                const SizedBox(height: 20),
+                _buildRoleSelector(),
                 if (_selectedRole == AppConstants.roleStudent) ...[
-                  const SizedBox(height: 16),
-                  DropdownButtonFormField<String>(
-                    value: _selectedClass,
-                    decoration: const InputDecoration(
-                      labelText: 'Class',
-                      prefixIcon: Icon(Icons.school),
-                    ),
-                    items:
-                        _classes.map((String value) {
-                          return DropdownMenuItem<String>(
-                            value: value,
-                            child: Text(value),
-                          );
-                        }).toList(),
-                    validator: (value) {
-                      if (_selectedRole == AppConstants.roleStudent &&
-                          (value == null || value.isEmpty)) {
-                        return 'Please select a class';
-                      }
-                      return null;
-                    },
-                    onChanged: (value) {
-                      setState(() {
-                        _selectedClass = value;
-                      });
-                    },
-                  ),
+                  const SizedBox(height: 20),
+                  _buildClassSelector(),
                 ],
-                const SizedBox(height: 24),
-                ElevatedButton(
-                  onPressed: _register,
-                  child: const Text('Register'),
-                ),
-                const SizedBox(height: 16),
-                TextButton(
-                  onPressed: () {
-                    Navigator.of(context).pushReplacement(
-                      MaterialPageRoute(
-                        builder: (context) => const LoginScreen(),
+                const SizedBox(height: 30),
+                _buildRegisterButton(),
+                const SizedBox(height: 20),
+                Center(
+                  child: TextButton(
+                    onPressed: () {
+                      Navigator.of(context).pushReplacement(
+                        MaterialPageRoute(
+                          builder: (context) => const LoginScreen(),
+                        ),
+                      );
+                    },
+                    child: const Text(
+                      'Already have an account? Login',
+                      style: TextStyle(
+                        color: Colors.black54,
+                        fontWeight: FontWeight.w500,
                       ),
-                    );
-                  },
-                  child: const Text('Already have an account? Login'),
+                    ),
+                  ),
                 ),
               ],
             ),
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTextField({
+    required TextEditingController controller,
+    required String hintText,
+    required bool isPassword,
+    bool isPasswordField = false,
+    bool isConfirmPasswordField = false,
+  }) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(30),
+      ),
+      child: TextFormField(
+        controller: controller,
+        obscureText: isPassword,
+        decoration: InputDecoration(
+          hintText: hintText,
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 20,
+            vertical: 16,
+          ),
+          border: InputBorder.none,
+          suffixIcon:
+              isPasswordField
+                  ? IconButton(
+                    icon: Icon(
+                      _obscurePassword
+                          ? Icons.visibility_off
+                          : Icons.visibility,
+                      color: Colors.black54,
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        _obscurePassword = !_obscurePassword;
+                      });
+                    },
+                  )
+                  : isConfirmPasswordField
+                  ? IconButton(
+                    icon: Icon(
+                      _obscureConfirmPassword
+                          ? Icons.visibility_off
+                          : Icons.visibility,
+                      color: Colors.black54,
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        _obscureConfirmPassword = !_obscureConfirmPassword;
+                      });
+                    },
+                  )
+                  : null,
+        ),
+        validator: (value) {
+          if (value == null || value.isEmpty) {
+            return 'This field is required';
+          }
+          if (isPasswordField && value.length < 6) {
+            return 'Password must be at least 6 characters';
+          }
+          if (isConfirmPasswordField && value != _passwordController.text) {
+            return 'Passwords do not match';
+          }
+          return null;
+        },
+      ),
+    );
+  }
+
+  Widget _buildRoleSelector() {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(30),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: DropdownButtonFormField<String>(
+        value: _selectedRole,
+        decoration: const InputDecoration(
+          labelText: 'Role',
+          border: InputBorder.none,
+        ),
+        items: [
+          DropdownMenuItem(
+            value: AppConstants.roleStudent,
+            child: const Text('Student'),
+          ),
+          DropdownMenuItem(
+            value: AppConstants.roleAdmin,
+            child: const Text('Admin'),
+          ),
+        ],
+        onChanged: (value) {
+          setState(() {
+            _selectedRole = value!;
+            if (value != AppConstants.roleStudent) {
+              _selectedClass = null;
+            }
+          });
+        },
+      ),
+    );
+  }
+
+  Widget _buildClassSelector() {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(30),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: DropdownButtonFormField<String>(
+        value: _selectedClass,
+        decoration: const InputDecoration(
+          labelText: 'Class',
+          border: InputBorder.none,
+        ),
+        items:
+            _classes.map((String value) {
+              return DropdownMenuItem<String>(value: value, child: Text(value));
+            }).toList(),
+        validator: (value) {
+          if (_selectedRole == AppConstants.roleStudent &&
+              (value == null || value.isEmpty)) {
+            return 'Please select a class';
+          }
+          return null;
+        },
+        onChanged: (value) {
+          setState(() {
+            _selectedClass = value;
+          });
+        },
+      ),
+    );
+  }
+
+  Widget _buildRegisterButton() {
+    return SizedBox(
+      width: double.infinity,
+      height: 56,
+      child: ElevatedButton(
+        onPressed: _register,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.black,
+          foregroundColor: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(30),
+          ),
+          elevation: 0,
+        ),
+        child: const Text(
+          'Sign Up',
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
         ),
       ),
     );

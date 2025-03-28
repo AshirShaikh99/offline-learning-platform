@@ -48,7 +48,17 @@ class _AdminClassSelectionScreenState extends State<AdminClassSelectionScreen> {
       },
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('Select Class for Content Management'),
+          leading:
+              Navigator.canPop(context)
+                  ? IconButton(
+                    icon: const Icon(Icons.arrow_back),
+                    onPressed: () => Navigator.pop(context),
+                  )
+                  : null,
+          title: Text(
+            'Select Class',
+            style: AppTheme.titleLarge.copyWith(fontWeight: FontWeight.bold),
+          ),
           actions: [
             IconButton(
               icon: const Icon(Icons.logout),

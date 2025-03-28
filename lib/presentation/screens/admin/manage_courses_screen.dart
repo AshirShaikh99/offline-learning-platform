@@ -37,7 +37,16 @@ class _ManageCoursesScreenState extends State<ManageCoursesScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Manage Courses')),
+      appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Navigator.pop(context),
+        ),
+        title: Text(
+          'Manage Courses',
+          style: AppTheme.titleLarge.copyWith(fontWeight: FontWeight.bold),
+        ),
+      ),
       body: BlocConsumer<CourseBloc, CourseState>(
         listener: (context, state) {
           if (state is CourseAdded) {
