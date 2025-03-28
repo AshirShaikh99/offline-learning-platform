@@ -34,6 +34,9 @@ class _ClassSelectionScreenState extends State<ClassSelectionScreen> {
   @override
   Widget build(BuildContext context) {
     return BlocListener<AuthBloc, AuthState>(
+      listenWhen:
+          (previous, current) =>
+              current is Unauthenticated && previous is! AuthInitial,
       listener: (context, state) {
         if (state is Unauthenticated) {
           Navigator.of(context).pushAndRemoveUntil(

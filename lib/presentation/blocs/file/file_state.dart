@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import '../../../data/models/course_model.dart';
 
 /// Base class for file states
 abstract class FileState extends Equatable {
@@ -10,6 +11,29 @@ abstract class FileState extends Equatable {
 
 /// Initial state
 class FileInitial extends FileState {}
+
+/// File loading state
+class FileLoading extends FileState {}
+
+/// Files loaded state
+class FilesLoaded extends FileState {
+  final List<CourseModel> files;
+
+  const FilesLoaded({required this.files});
+
+  @override
+  List<Object?> get props => [files];
+}
+
+/// File uploaded state
+class FileUploaded extends FileState {
+  final String fileId;
+
+  const FileUploaded({required this.fileId});
+
+  @override
+  List<Object?> get props => [fileId];
+}
 
 /// File checking state
 class FileChecking extends FileState {
@@ -40,9 +64,6 @@ class FileDownloading extends FileState {
   @override
   List<Object> get props => [fileId];
 }
-
-/// File loading state
-class FileLoading extends FileState {}
 
 /// File downloaded state
 class FileDownloaded extends FileState {
@@ -84,14 +105,4 @@ class FileError extends FileState {
 
   @override
   List<Object> get props => [fileId, message];
-}
-
-/// Files loaded state
-class FilesLoaded extends FileState {
-  final List<dynamic> files;
-
-  const FilesLoaded({required this.files});
-
-  @override
-  List<Object> get props => [files];
 }

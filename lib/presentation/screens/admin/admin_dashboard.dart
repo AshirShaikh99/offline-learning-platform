@@ -5,9 +5,11 @@ import '../../../core/theme/app_theme.dart';
 import '../../blocs/auth/auth_bloc.dart';
 import '../../blocs/auth/auth_event.dart';
 import '../../blocs/auth/auth_state.dart';
+import '../../blocs/file/file_bloc.dart';
+import '../../blocs/file/file_event.dart';
+import '../../blocs/file/file_state.dart';
 import '../login_screen.dart';
 import 'manage_courses_screen.dart';
-import 'manage_users_screen.dart';
 
 /// Admin dashboard screen
 class AdminDashboard extends StatefulWidget {
@@ -19,8 +21,25 @@ class AdminDashboard extends StatefulWidget {
 
 class _AdminDashboardState extends State<AdminDashboard> {
   @override
+  void initState() {
+    super.initState();
+    // Load all files when dashboard initializes
+    _loadFiles();
+  }
+
+  void _loadFiles() {
+    // Load all files without class/subject filter to get total count
+    context.read<FileBloc>().add(
+      const LoadFilesEvent(className: '', subject: ''),
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
     return BlocListener<AuthBloc, AuthState>(
+      listenWhen:
+          (previous, current) =>
+              current is Unauthenticated && previous is! AuthInitial,
       listener: (context, state) {
         if (state is Unauthenticated) {
           Navigator.of(context).pushAndRemoveUntil(
@@ -29,30 +48,62 @@ class _AdminDashboardState extends State<AdminDashboard> {
           );
         }
       },
-      child: Scaffold(
-        appBar: AppBar(
-          title: const Text('Admin Dashboard'),
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.logout),
-              onPressed: () {
-                context.read<AuthBloc>().add(LogoutEvent());
-              },
-            ),
-          ],
-        ),
-        body: SingleChildScrollView(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildWelcomeSection(),
-              const SizedBox(height: 24),
-              _buildAdminActions(),
+      child: MultiBlocListener(
+        listeners: [
+          BlocListener<FileBloc, FileState>(
+            listener: (context, state) {
+              if (state is FileUploaded || state is FileDeleted) {
+                // Reload files after upload or delete
+                _loadFiles();
+              }
+            },
+          ),
+        ],
+        child: Scaffold(
+          body: CustomScrollView(
+            slivers: [
+              _buildAppBar(),
+              SliverToBoxAdapter(child: _buildWelcomeSection()),
+              SliverPadding(
+                padding: const EdgeInsets.all(16),
+                sliver: _buildAdminActions(),
+              ),
             ],
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildAppBar() {
+    return SliverAppBar(
+      expandedHeight: 200,
+      floating: false,
+      pinned: true,
+      flexibleSpace: FlexibleSpaceBar(
+        title: Text(
+          'Admin Dashboard',
+          style: AppTheme.titleLarge.copyWith(color: Colors.white),
+        ),
+        background: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [
+                AppTheme.primaryColor,
+                AppTheme.primaryColor.withOpacity(0.8),
+              ],
+            ),
+          ),
+        ),
+      ),
+      actions: [
+        IconButton(
+          icon: const Icon(Icons.logout, color: Colors.white),
+          onPressed: () => context.read<AuthBloc>().add(LogoutEvent()),
+        ),
+      ],
     );
   }
 
@@ -61,42 +112,33 @@ class _AdminDashboardState extends State<AdminDashboard> {
       builder: (context, state) {
         if (state is Authenticated) {
           return Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: AppTheme.primaryColor.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(8),
-            ),
+            padding: const EdgeInsets.all(24),
             child: Row(
               children: [
                 CircleAvatar(
                   backgroundColor: AppTheme.primaryColor,
-                  radius: 24,
+                  radius: 30,
                   child: Text(
                     state.user.username.substring(0, 1).toUpperCase(),
-                    style: const TextStyle(
+                    style: AppTheme.headlineMedium.copyWith(
                       color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 18,
                     ),
                   ),
                 ),
-                const SizedBox(width: 12),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Welcome, ${state.user.username}',
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Welcome back,',
+                        style: AppTheme.bodyLarge.copyWith(
+                          color: Colors.grey[600],
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 4),
-                    const Text(
-                      'Administrator',
-                      style: TextStyle(fontSize: 14, color: Colors.black54),
-                    ),
-                  ],
+                      Text(state.user.username, style: AppTheme.headlineMedium),
+                    ],
+                  ),
                 ),
               ],
             ),
@@ -108,48 +150,48 @@ class _AdminDashboardState extends State<AdminDashboard> {
   }
 
   Widget _buildAdminActions() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          'Admin Actions',
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-        ),
-        const SizedBox(height: 16),
-        GridView.count(
-          crossAxisCount: 2,
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          mainAxisSpacing: 16,
-          crossAxisSpacing: 16,
-          children: [
-            _buildActionCard(
-              title: 'Manage Courses',
-              icon: Icons.book,
-              color: Colors.blue,
-              onTap: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (context) => const ManageCoursesScreen(),
-                  ),
-                );
-              },
+    final actions = [
+      {
+        'title': 'Manage Courses',
+        'icon': Icons.book,
+        'color': Colors.blue,
+        'onTap':
+            () => Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (context) => const ManageCoursesScreen(),
+              ),
             ),
-            _buildActionCard(
-              title: 'Manage Users',
-              icon: Icons.people,
-              color: Colors.green,
-              onTap: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (context) => const ManageUsersScreen(),
-                  ),
-                );
-              },
-            ),
-          ],
-        ),
-      ],
+      },
+      {
+        'title': 'Upload Statistics',
+        'icon': Icons.analytics,
+        'color': Colors.purple,
+        'isStats': true,
+      },
+    ];
+
+    return SliverGrid(
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        childAspectRatio: 1.1,
+        crossAxisSpacing: 16,
+        mainAxisSpacing: 16,
+      ),
+      delegate: SliverChildBuilderDelegate((context, index) {
+        final action = actions[index];
+        return action['isStats'] == true
+            ? _buildStatsCard(
+              title: action['title'] as String,
+              icon: action['icon'] as IconData,
+              color: action['color'] as Color,
+            )
+            : _buildActionCard(
+              title: action['title'] as String,
+              icon: action['icon'] as IconData,
+              color: action['color'] as Color,
+              onTap: action['onTap'] as VoidCallback,
+            );
+      }, childCount: actions.length),
     );
   }
 
@@ -160,30 +202,117 @@ class _AdminDashboardState extends State<AdminDashboard> {
     required VoidCallback onTap,
   }) {
     return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+      elevation: 0,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(8),
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
+        borderRadius: BorderRadius.circular(16),
+        child: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [color.withOpacity(0.8), color.withOpacity(0.6)],
+            ),
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Stack(
             children: [
-              Icon(icon, size: 48, color: color),
-              const SizedBox(height: 16),
-              Text(
-                title,
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
+              Positioned(
+                right: -20,
+                bottom: -20,
+                child: Icon(
+                  icon,
+                  size: 100,
+                  color: Colors.white.withOpacity(0.2),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Icon(icon, color: Colors.white, size: 32),
+                    const Spacer(),
+                    Text(
+                      title,
+                      style: AppTheme.titleLarge.copyWith(color: Colors.white),
+                    ),
+                  ],
                 ),
               ),
             ],
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildStatsCard({
+    required String title,
+    required IconData icon,
+    required Color color,
+  }) {
+    return BlocBuilder<FileBloc, FileState>(
+      builder: (context, state) {
+        int uploadCount = 0;
+        if (state is FilesLoaded) {
+          uploadCount = state.files.length;
+        }
+
+        return Card(
+          elevation: 0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [color.withOpacity(0.8), color.withOpacity(0.6)],
+              ),
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Stack(
+              children: [
+                Positioned(
+                  right: -20,
+                  bottom: -20,
+                  child: Icon(
+                    icon,
+                    size: 100,
+                    color: Colors.white.withOpacity(0.2),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Icon(icon, color: Colors.white, size: 32),
+                      const Spacer(),
+                      Text(
+                        title,
+                        style: AppTheme.titleLarge.copyWith(
+                          color: Colors.white,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        '$uploadCount Files Uploaded',
+                        style: AppTheme.bodyLarge.copyWith(
+                          color: Colors.white.withOpacity(0.9),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }

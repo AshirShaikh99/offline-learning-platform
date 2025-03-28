@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:file_picker/file_picker.dart';
 
+import '../../../core/constants/app_constants.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/utils/file_utils.dart';
 import '../../blocs/file/file_bloc.dart';
@@ -126,18 +127,20 @@ class _ContentManagementScreenState extends State<ContentManagementScreen> {
               final file = state.files[index];
               return ListTile(
                 leading: Icon(
-                  file.type == 'pdf' ? Icons.picture_as_pdf : Icons.flash_on,
+                  file.fileType == AppConstants.typePdf
+                      ? Icons.picture_as_pdf
+                      : Icons.flash_on,
                   color: AppTheme.primaryColor,
                 ),
-                title: Text(file.name),
-                subtitle: Text('Type: ${file.type}'),
+                title: Text(file.title),
+                subtitle: Text('Type: ${file.fileType}'),
                 trailing: IconButton(
                   icon: const Icon(Icons.delete),
                   onPressed: () {
                     context.read<FileBloc>().add(
                       DeleteFileEvent(
                         fileId: file.id,
-                        fileName: file.name,
+                        fileName: file.title,
                         className: widget.className,
                         subject: widget.subject,
                       ),

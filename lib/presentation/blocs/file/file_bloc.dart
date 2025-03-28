@@ -100,32 +100,32 @@ class FileBloc extends Bloc<FileEvent, FileState> {
   ) async {
     emit(FileLoading());
     try {
-      // Get all courses for the specified class and subject
-      final files =
-          courseBox.values
-              .where(
-                (course) =>
-                    course.className == event.className &&
-                    course.subject == event.subject,
-              )
-              .map(
-                (course) => FileModel(
-                  id: course.id,
-                  name: course.title,
-                  type: course.fileType,
-                  path: course.filePath,
-                ),
-              )
-              .toList();
+      final appDir = await getApplicationDocumentsDirectory();
+      final coursesDir = Directory('${appDir.path}/courses');
 
-      emit(FilesLoaded(files: files));
+      if (!await coursesDir.exists()) {
+        emit(FilesLoaded(files: []));
+        return;
+      }
+
+      final files = await courseBox.values.toList();
+
+      // If className and subject are empty, return all files
+      // Otherwise, filter by className and subject
+      final filteredFiles =
+          (event.className.isEmpty && event.subject.isEmpty)
+              ? files
+              : files
+                  .where(
+                    (file) =>
+                        file.className == event.className &&
+                        file.subject == event.subject,
+                  )
+                  .toList();
+
+      emit(FilesLoaded(files: filteredFiles));
     } catch (e) {
-      emit(
-        FileError(
-          fileId: '${event.className}_${event.subject}',
-          message: e.toString(),
-        ),
-      );
+      emit(FileError(fileId: 'load', message: e.toString()));
     }
   }
 
@@ -159,12 +159,15 @@ class FileBloc extends Bloc<FileEvent, FileState> {
         subject: event.subject,
         fileType: event.fileType,
         filePath: savedPath,
-        uploadedBy: 'admin', // Add a default value or pass it through event
+        uploadedBy: 'admin',
         createdAt: DateTime.now(),
         updatedAt: DateTime.now(),
       );
 
       await courseBox.put(fileId, course);
+
+      // Emit FileUploaded state
+      emit(FileUploaded(fileId: fileId));
 
       // Reload files
       add(LoadFilesEvent(className: event.className, subject: event.subject));

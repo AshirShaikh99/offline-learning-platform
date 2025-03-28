@@ -5,11 +5,8 @@ import '../../../core/theme/app_theme.dart';
 import '../../blocs/auth/auth_bloc.dart';
 import '../../blocs/auth/auth_event.dart';
 import '../../blocs/auth/auth_state.dart';
-import '../../blocs/course/course_bloc.dart';
-import '../../blocs/course/course_event.dart';
-import '../../blocs/course/course_state.dart';
 import '../login_screen.dart';
-import 'course_detail_screen.dart';
+import 'subject_selection_screen.dart';
 
 /// Student dashboard screen
 class StudentDashboard extends StatefulWidget {
@@ -21,23 +18,11 @@ class StudentDashboard extends StatefulWidget {
 
 class _StudentDashboardState extends State<StudentDashboard> {
   @override
-  void initState() {
-    super.initState();
-    _loadCourses();
-  }
-
-  void _loadCourses() {
-    final authState = context.read<AuthBloc>().state;
-    if (authState is Authenticated && authState.user.className != null) {
-      context.read<CourseBloc>().add(
-        GetCoursesByClassNameEvent(className: authState.user.className!),
-      );
-    }
-  }
-
-  @override
   Widget build(BuildContext context) {
     return BlocListener<AuthBloc, AuthState>(
+      listenWhen:
+          (previous, current) =>
+              current is Unauthenticated && previous is! AuthInitial,
       listener: (context, state) {
         if (state is Unauthenticated) {
           Navigator.of(context).pushAndRemoveUntil(
@@ -47,25 +32,67 @@ class _StudentDashboardState extends State<StudentDashboard> {
         }
       },
       child: Scaffold(
-        appBar: AppBar(
-          title: const Text('Student Dashboard'),
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.logout),
-              onPressed: () {
-                context.read<AuthBloc>().add(LogoutEvent());
-              },
+        body: CustomScrollView(
+          slivers: [
+            _buildAppBar(),
+            SliverToBoxAdapter(child: _buildWelcomeSection()),
+            SliverToBoxAdapter(child: _buildFeaturedSection()),
+            SliverPadding(
+              padding: const EdgeInsets.all(16),
+              sliver: _buildClassGrid(),
             ),
           ],
         ),
-        body: Column(
-          children: [
-            _buildWelcomeSection(),
-            const SizedBox(height: 16),
-            Expanded(child: _buildCoursesList()),
-          ],
+      ),
+    );
+  }
+
+  Widget _buildAppBar() {
+    return SliverAppBar(
+      expandedHeight: 200,
+      floating: false,
+      pinned: true,
+      flexibleSpace: FlexibleSpaceBar(
+        title: const Text('Student Dashboard'),
+        background: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [
+                AppTheme.primaryColor,
+                AppTheme.primaryColor.withOpacity(0.8),
+              ],
+            ),
+          ),
+          child: Stack(
+            children: [
+              Positioned(
+                right: -50,
+                top: -50,
+                child: CircleAvatar(
+                  radius: 100,
+                  backgroundColor: Colors.white.withOpacity(0.1),
+                ),
+              ),
+              Positioned(
+                left: -30,
+                bottom: -30,
+                child: CircleAvatar(
+                  radius: 80,
+                  backgroundColor: Colors.white.withOpacity(0.1),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
+      actions: [
+        IconButton(
+          icon: const Icon(Icons.logout),
+          onPressed: () => context.read<AuthBloc>().add(LogoutEvent()),
+        ),
+      ],
     );
   }
 
@@ -75,7 +102,6 @@ class _StudentDashboardState extends State<StudentDashboard> {
         if (state is Authenticated) {
           return Container(
             padding: const EdgeInsets.all(16),
-            color: AppTheme.primaryColor.withOpacity(0.1),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -83,33 +109,32 @@ class _StudentDashboardState extends State<StudentDashboard> {
                   children: [
                     CircleAvatar(
                       backgroundColor: AppTheme.primaryColor,
-                      radius: 24,
+                      radius: 30,
                       child: Text(
                         state.user.username.substring(0, 1).toUpperCase(),
                         style: const TextStyle(
                           color: Colors.white,
+                          fontSize: 24,
                           fontWeight: FontWeight.bold,
-                          fontSize: 18,
                         ),
                       ),
                     ),
-                    const SizedBox(width: 12),
+                    const SizedBox(width: 16),
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Welcome, ${state.user.username}',
-                          style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
+                          'Welcome back,',
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: Colors.grey[600],
                           ),
                         ),
-                        const SizedBox(height: 4),
                         Text(
-                          'Class: ${state.user.className ?? "Not assigned"}',
+                          state.user.username,
                           style: const TextStyle(
-                            fontSize: 14,
-                            color: Colors.black54,
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
                           ),
                         ),
                       ],
@@ -125,134 +150,197 @@ class _StudentDashboardState extends State<StudentDashboard> {
     );
   }
 
-  Widget _buildCoursesList() {
-    return BlocBuilder<CourseBloc, CourseState>(
-      builder: (context, state) {
-        if (state is CourseLoading) {
-          return const Center(child: CircularProgressIndicator());
-        } else if (state is CoursesLoaded) {
-          if (state.courses.isEmpty) {
-            return _buildEmptyCoursesList();
-          }
-          return ListView.builder(
-            padding: const EdgeInsets.all(16),
-            itemCount: state.courses.length,
-            itemBuilder: (context, index) {
-              final course = state.courses[index];
-              return Card(
-                margin: const EdgeInsets.only(bottom: 16),
-                elevation: 2,
-                child: ListTile(
-                  contentPadding: const EdgeInsets.all(16),
-                  leading: CircleAvatar(
-                    backgroundColor:
-                        course.isPdf
-                            ? Colors.red.shade100
-                            : Colors.blue.shade100,
-                    child: Icon(
-                      course.isPdf ? Icons.picture_as_pdf : Icons.flash_on,
-                      color: course.isPdf ? Colors.red : Colors.blue,
-                    ),
-                  ),
-                  title: Text(
-                    course.title,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                    ),
-                  ),
-                  subtitle: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const SizedBox(height: 4),
-                      Text(
-                        course.description,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(fontSize: 14),
-                      ),
-                      const SizedBox(height: 8),
-                      Row(
-                        children: [
-                          const Icon(
-                            Icons.class_,
-                            size: 14,
-                            color: Colors.grey,
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            course.className,
-                            style: const TextStyle(
-                              fontSize: 12,
-                              color: Colors.grey,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder:
-                            (context) => CourseDetailScreen(course: course),
-                      ),
-                    );
-                  },
-                ),
-              );
-            },
-          );
-        } else if (state is CourseError) {
-          return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
+  Widget _buildFeaturedSection() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('Start Learning', style: AppTheme.headlineLarge),
+          const SizedBox(height: 8),
+          Text(
+            'Choose your class to begin your learning journey',
+            style: AppTheme.bodyLarge.copyWith(color: Colors.grey[600]),
+          ),
+          const SizedBox(height: 16),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
               children: [
-                const Icon(Icons.error_outline, color: Colors.red, size: 48),
-                const SizedBox(height: 16),
-                Text(
-                  'Error: ${state.message}',
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(color: Colors.red),
+                _buildQuickAccessCard(
+                  'Continue Learning',
+                  'Resume where you left off',
+                  Icons.play_circle_filled,
+                  Colors.blue,
                 ),
-                const SizedBox(height: 16),
-                ElevatedButton(
-                  onPressed: _loadCourses,
-                  child: const Text('Try Again'),
+                _buildQuickAccessCard(
+                  'My Progress',
+                  'Track your achievements',
+                  Icons.bar_chart,
+                  Colors.green,
+                ),
+                _buildQuickAccessCard(
+                  'Bookmarks',
+                  'Your saved content',
+                  Icons.bookmark,
+                  Colors.orange,
                 ),
               ],
             ),
-          );
-        }
-        return _buildEmptyCoursesList();
-      },
+          ),
+        ],
+      ),
     );
   }
 
-  Widget _buildEmptyCoursesList() {
-    return Center(
+  Widget _buildQuickAccessCard(
+    String title,
+    String subtitle,
+    IconData icon,
+    Color color,
+  ) {
+    return Container(
+      width: 160,
+      margin: const EdgeInsets.only(right: 16),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: color.withOpacity(0.3)),
+      ),
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(Icons.menu_book, size: 64, color: Colors.grey.shade400),
-          const SizedBox(height: 16),
+          Icon(icon, color: color, size: 32),
+          const SizedBox(height: 12),
           Text(
-            'No courses available',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: Colors.grey.shade600,
+            title,
+            style: AppTheme.labelLarge.copyWith(color: color.withOpacity(0.8)),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            subtitle,
+            style: AppTheme.bodyMedium.copyWith(color: color.withOpacity(0.6)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildClassGrid() {
+    final List<Map<String, dynamic>> classes = [
+      {'name': 'Play Group', 'icon': Icons.child_care},
+      {'name': 'Nursery', 'icon': Icons.child_friendly},
+      {'name': 'KG', 'icon': Icons.auto_stories},
+      {'name': 'Class 1', 'icon': Icons.looks_one},
+      {'name': 'Class 2', 'icon': Icons.looks_two},
+      {'name': 'Class 3', 'icon': Icons.looks_3},
+      {'name': 'Class 4', 'icon': Icons.looks_4},
+      {'name': 'Class 5', 'icon': Icons.looks_5},
+      {'name': 'Class 6', 'icon': Icons.looks_6},
+      {'name': 'Class 7', 'icon': Icons.grade},
+      {'name': 'Class 8', 'icon': Icons.school},
+      {'name': 'Class 9', 'icon': Icons.menu_book},
+      {'name': 'Class 10', 'icon': Icons.psychology},
+    ];
+
+    return SliverGrid(
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        childAspectRatio: 1.2,
+        crossAxisSpacing: 16,
+        mainAxisSpacing: 16,
+      ),
+      delegate: SliverChildBuilderDelegate((context, index) {
+        final className = classes[index]['name'] as String;
+        final iconData = classes[index]['icon'] as IconData;
+        return _buildClassCard(className, iconData);
+      }, childCount: classes.length),
+    );
+  }
+
+  Widget _buildClassCard(String className, IconData icon) {
+    return InkWell(
+      onTap:
+          () => Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder:
+                  (context) => SubjectSelectionScreen(className: className),
             ),
           ),
-          const SizedBox(height: 8),
-          Text(
-            'Courses for your class will appear here',
-            style: TextStyle(fontSize: 14, color: Colors.grey.shade500),
+      child: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              AppTheme.primaryColor.withOpacity(0.8),
+              AppTheme.primaryColor.withOpacity(0.6),
+            ],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
           ),
-          const SizedBox(height: 24),
-          ElevatedButton(onPressed: _loadCourses, child: const Text('Refresh')),
-        ],
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.grey.withOpacity(0.3),
+              blurRadius: 8,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Stack(
+          children: [
+            Positioned(
+              right: -20,
+              bottom: -20,
+              child: Icon(
+                icon,
+                size: 100,
+                color: Colors.white.withOpacity(0.2),
+              ),
+            ),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(16),
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    Colors.white.withOpacity(0.15),
+                    Colors.white.withOpacity(0.05),
+                  ],
+                ),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(icon, color: Colors.white, size: 32),
+                  const SizedBox(height: 16),
+                  Text(
+                    className,
+                    style: AppTheme.titleLarge.copyWith(color: Colors.white),
+                  ),
+                  const SizedBox(height: 8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Text(
+                      'Explore Subjects',
+                      style: AppTheme.bodyMedium.copyWith(color: Colors.white),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
