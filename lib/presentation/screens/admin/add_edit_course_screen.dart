@@ -30,7 +30,7 @@ class _AddEditCourseScreenState extends State<AddEditCourseScreen> {
   final _descriptionController = TextEditingController();
   String? _selectedClass;
   String? _selectedSubject;
-  String _selectedFileType = AppConstants.typePdf;
+  String? _selectedFileType;
   File? _selectedFile;
   String? _selectedFileName;
   bool _isEditing = false;
@@ -48,7 +48,7 @@ class _AddEditCourseScreenState extends State<AddEditCourseScreen> {
   ];
 
   final List<String> _classes = [
-    'Play Group',
+    'Playgroup', // Changed from 'Play Group'
     'Nursery',
     'KG',
     'Class 1',
@@ -70,7 +70,10 @@ class _AddEditCourseScreenState extends State<AddEditCourseScreen> {
     if (_isEditing) {
       _titleController.text = widget.course!.title;
       _descriptionController.text = widget.course!.description;
-      _selectedClass = widget.course!.className;
+      _selectedClass = _classes.firstWhere(
+        (c) => c == widget.course!.className,
+        orElse: () => widget.course!.className,
+      );
       _selectedSubject = widget.course!.subject;
       _selectedFileType = widget.course!.fileType;
       _selectedFileName = widget.course!.filePath.split('/').last;
@@ -137,7 +140,7 @@ class _AddEditCourseScreenState extends State<AddEditCourseScreen> {
           title: _titleController.text.trim(),
           description: _descriptionController.text.trim(),
           filePath: '', // This will be set by the repository
-          fileType: _selectedFileType,
+          fileType: _selectedFileType ?? AppConstants.typePdf,
           className: _selectedClass!,
           subject: _selectedSubject!,
           uploadedBy: authState.user.id,
@@ -157,22 +160,14 @@ class _AddEditCourseScreenState extends State<AddEditCourseScreen> {
     return Scaffold(
       backgroundColor: const Color(
         0xFFF8E8C8,
-      ), // Cream background color to match login screen
+      ), // Match register screen background
       appBar: AppBar(
-        backgroundColor: Colors.black, // Black to match login button
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: Text(
-          _isEditing ? 'Edit Course' : 'Add Course',
-          style: AppTheme.titleLarge.copyWith(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
+        backgroundColor: Colors.transparent,
         elevation: 0,
-        centerTitle: true,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
       ),
       body: BlocConsumer<CourseBloc, CourseState>(
         listener: (context, state) {
@@ -190,9 +185,19 @@ class _AddEditCourseScreenState extends State<AddEditCourseScreen> {
               padding: const EdgeInsets.all(24),
               child: Container(
                 width: double.infinity,
+                constraints: const BoxConstraints(
+                  maxWidth: 600, // Maximum width for larger screens
+                ),
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(30),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.1),
+                      blurRadius: 10,
+                      offset: const Offset(0, 5),
+                    ),
+                  ],
                 ),
                 padding: const EdgeInsets.all(24),
                 child: Form(
@@ -201,14 +206,14 @@ class _AddEditCourseScreenState extends State<AddEditCourseScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Basic Information',
-                        style: TextStyle(
-                          fontSize: 18,
+                        _isEditing ? 'Edit Course' : 'Add New Course',
+                        style: const TextStyle(
+                          fontSize: 28,
                           fontWeight: FontWeight.bold,
                           color: Colors.black,
                         ),
                       ),
-                      const SizedBox(height: 24),
+                      const SizedBox(height: 30),
                       _buildTextField(
                         controller: _titleController,
                         hintText: 'Course Title',
@@ -231,25 +236,28 @@ class _AddEditCourseScreenState extends State<AddEditCourseScreen> {
                         ),
                       ),
                       const SizedBox(height: 24),
-                      _buildDropdown(
+                      _buildDropdown<String>(
                         value: _selectedClass,
                         items: _classes,
-                        hintText: 'Select Class',
+                        hintText: 'Class',
                         icon: Icons.class_outlined,
                         onChanged: (value) {
                           setState(() {
                             _selectedClass = value;
+                            _selectedSubject =
+                                null; // Reset subject when class changes
                           });
                         },
                         validator:
                             (value) =>
                                 value == null ? 'Please select a class' : null,
+                        itemBuilder: (item) => item,
                       ),
                       const SizedBox(height: 16),
-                      _buildDropdown(
+                      _buildDropdown<String>(
                         value: _selectedSubject,
                         items: _subjects,
-                        hintText: 'Select Subject',
+                        hintText: 'Subject',
                         icon: Icons.subject,
                         onChanged: (value) {
                           setState(() {
@@ -261,6 +269,7 @@ class _AddEditCourseScreenState extends State<AddEditCourseScreen> {
                                 value == null
                                     ? 'Please select a subject'
                                     : null,
+                        itemBuilder: (item) => item,
                       ),
                       const SizedBox(height: 32),
                       Text(
@@ -272,119 +281,33 @@ class _AddEditCourseScreenState extends State<AddEditCourseScreen> {
                         ),
                       ),
                       const SizedBox(height: 24),
-                      _buildDropdown(
+                      _buildDropdown<String>(
                         value: _selectedFileType,
                         items: [AppConstants.typePdf, AppConstants.typeFlash],
-                        hintText: 'Select File Type',
+                        hintText: 'File Type',
                         icon: Icons.file_present_outlined,
                         onChanged: (value) {
                           setState(() {
-                            _selectedFileType = value!;
+                            _selectedFileType = value;
                             _selectedFile = null;
                             _selectedFileName = null;
                           });
                         },
+                        validator:
+                            (value) =>
+                                value == null
+                                    ? 'Please select a file type'
+                                    : null,
                         itemBuilder:
                             (item) =>
                                 item == AppConstants.typePdf
-                                    ? 'PDF'
-                                    : 'Flash/HTML',
+                                    ? 'PDF Document'
+                                    : 'Flash/HTML Content',
                       ),
                       const SizedBox(height: 24),
-                      InkWell(
-                        onTap: _pickFile,
-                        borderRadius: BorderRadius.circular(30),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 20,
-                            vertical: 16,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(30),
-                            border: Border.all(
-                              color: Colors.grey.withOpacity(0.3),
-                            ),
-                          ),
-                          child: Row(
-                            children: [
-                              Icon(
-                                Icons.upload_file_outlined,
-                                color: Colors.grey,
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      _selectedFileName ?? 'Upload File',
-                                      style: TextStyle(
-                                        color:
-                                            _selectedFileName != null
-                                                ? Colors.black
-                                                : Colors.grey,
-                                      ),
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
+                      _buildFileUploadSection(),
                       const SizedBox(height: 40),
-                      SizedBox(
-                        width: double.infinity,
-                        height: 56,
-                        child: Container(
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              colors: [Colors.black, Color(0xFF333333)],
-                              begin: Alignment.centerLeft,
-                              end: Alignment.centerRight,
-                            ),
-                            borderRadius: BorderRadius.circular(30),
-                          ),
-                          child: ElevatedButton(
-                            onPressed:
-                                state is CourseLoading ? null : _saveCourse,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.transparent,
-                              foregroundColor: Colors.white,
-                              shadowColor: Colors.transparent,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(30),
-                              ),
-                              elevation: 0,
-                            ),
-                            child:
-                                state is CourseLoading
-                                    ? const SizedBox(
-                                      height: 24,
-                                      width: 24,
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 2,
-                                        valueColor:
-                                            AlwaysStoppedAnimation<Color>(
-                                              Colors.white,
-                                            ),
-                                      ),
-                                    )
-                                    : Text(
-                                      _isEditing
-                                          ? 'Update Course'
-                                          : 'Add Course',
-                                      style: TextStyle(
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                    ),
-                          ),
-                        ),
-                      ),
+                      _buildSubmitButton(state),
                     ],
                   ),
                 ),
@@ -402,73 +325,278 @@ class _AddEditCourseScreenState extends State<AddEditCourseScreen> {
     required IconData icon,
     int maxLines = 1,
   }) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(30),
-        border: Border.all(color: Colors.grey.withOpacity(0.3)),
-      ),
-      child: TextFormField(
-        controller: controller,
-        maxLines: maxLines,
-        style: TextStyle(fontSize: 16),
-        decoration: InputDecoration(
-          hintText: hintText,
-          hintStyle: TextStyle(color: Colors.grey.withOpacity(0.7)),
-          contentPadding: const EdgeInsets.symmetric(
-            horizontal: 20,
-            vertical: 16,
-          ),
-          border: InputBorder.none,
-          prefixIcon: Icon(icon, color: Colors.grey),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          hintText,
+          style: const TextStyle(fontSize: 16, color: Colors.grey),
         ),
-        validator: (value) {
-          if (value == null || value.isEmpty) {
-            return 'This field is required';
-          }
-          return null;
-        },
-      ),
+        const SizedBox(height: 8),
+        Container(
+          decoration: BoxDecoration(
+            color: Theme.of(context).cardColor,
+            borderRadius: BorderRadius.circular(30),
+            border: Border.all(color: Colors.grey.withOpacity(0.3)),
+          ),
+          child: TextFormField(
+            controller: controller,
+            maxLines: maxLines,
+            style: const TextStyle(fontSize: 16),
+            decoration: InputDecoration(
+              hintText: hintText,
+              hintStyle: TextStyle(color: Colors.grey.withOpacity(0.7)),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 20,
+                vertical: 16,
+              ),
+              border: InputBorder.none,
+              focusedBorder: InputBorder.none,
+              enabledBorder: InputBorder.none,
+              errorBorder: InputBorder.none,
+              disabledBorder: InputBorder.none,
+              prefixIcon: Icon(icon, color: Colors.grey),
+              fillColor: Colors.transparent,
+              filled: true,
+            ),
+            validator: (value) {
+              if (value == null || value.isEmpty) {
+                return 'This field is required';
+              }
+              return null;
+            },
+          ),
+        ),
+      ],
     );
   }
 
   Widget _buildDropdown<T>({
-    required T? value,
+    T? value,
     required List<T> items,
     required String hintText,
     required IconData icon,
-    required Function(T?) onChanged,
-    String? Function(T?)? validator,
-    String Function(T)? itemBuilder,
+    required void Function(T?) onChanged,
+    required String? Function(T?)? validator,
+    required String Function(T) itemBuilder,
   }) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(30),
-        border: Border.all(color: Colors.grey.withOpacity(0.3)),
-      ),
-      padding: const EdgeInsets.symmetric(horizontal: 12),
-      child: DropdownButtonFormField<T>(
-        value: value,
-        decoration: InputDecoration(
-          hintText: hintText,
-          hintStyle: TextStyle(color: Colors.grey.withOpacity(0.7)),
-          border: InputBorder.none,
-          prefixIcon: Icon(icon, color: Colors.grey),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          hintText,
+          style: const TextStyle(fontSize: 16, color: Colors.grey),
         ),
-        style: TextStyle(fontSize: 16, color: Colors.black),
-        dropdownColor: Colors.white,
-        items:
-            items.map((T item) {
-              return DropdownMenuItem<T>(
-                value: item,
-                child: Text(
-                  itemBuilder != null ? itemBuilder(item) : item.toString(),
+        const SizedBox(height: 8),
+        Container(
+          decoration: BoxDecoration(
+            color: Theme.of(context).cardColor,
+            borderRadius: BorderRadius.circular(30),
+            border: Border.all(color: Colors.grey.withOpacity(0.3)),
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          child: DropdownButtonFormField<T>(
+            value: value,
+            isExpanded: true,
+            hint: Text(
+              'Select ${hintText.toLowerCase()}',
+              style: TextStyle(
+                color: Colors.grey.withOpacity(0.7),
+                fontSize: 16,
+              ),
+            ),
+            decoration: InputDecoration(
+              border: InputBorder.none,
+              focusedBorder: InputBorder.none,
+              enabledBorder: InputBorder.none,
+              errorBorder: InputBorder.none,
+              disabledBorder: InputBorder.none,
+              contentPadding: const EdgeInsets.symmetric(vertical: 16),
+              prefixIcon: Icon(icon, color: Colors.grey),
+              fillColor: Colors.transparent,
+              filled: true,
+            ),
+            style: TextStyle(
+              fontSize: 16,
+              color:
+                  Theme.of(context).textTheme.bodyLarge?.color ?? Colors.black,
+            ),
+            dropdownColor: Theme.of(context).cardColor,
+            items:
+                items.map((T item) {
+                  return DropdownMenuItem<T>(
+                    value: item,
+                    child: Text(
+                      itemBuilder(item),
+                      style: TextStyle(
+                        fontSize: 16,
+                        color:
+                            Theme.of(context).textTheme.bodyLarge?.color ??
+                            Colors.black,
+                      ),
+                    ),
+                  );
+                }).toList(),
+            validator: validator,
+            onChanged: onChanged,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildFileUploadSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Course File',
+          style: TextStyle(fontSize: 16, color: Colors.grey),
+        ),
+        const SizedBox(height: 8),
+        InkWell(
+          onTap: _pickFile,
+          borderRadius: BorderRadius.circular(30),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+            decoration: BoxDecoration(
+              color: Theme.of(context).cardColor,
+              borderRadius: BorderRadius.circular(30),
+              border: Border.all(
+                color:
+                    _selectedFileName != null
+                        ? Colors.green.withOpacity(0.5)
+                        : Colors.grey.withOpacity(0.3),
+              ),
+            ),
+            child: Column(
+              children: [
+                Row(
+                  children: [
+                    Icon(
+                      _selectedFileName != null
+                          ? Icons.check_circle_outline
+                          : Icons.upload_file_outlined,
+                      color:
+                          _selectedFileName != null
+                              ? Colors.green
+                              : Colors.grey,
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        _selectedFileName ?? 'No file chosen',
+                        style: TextStyle(
+                          color:
+                              _selectedFileName != null
+                                  ? Colors.black
+                                  : Colors.grey.withOpacity(0.7),
+                          fontSize: 16,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
                 ),
-              );
-            }).toList(),
-        validator: validator,
-        onChanged: onChanged,
+                if (_selectedFileName == null) ...[
+                  const SizedBox(height: 8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.grey.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.touch_app,
+                          size: 16,
+                          color: Colors.grey.withOpacity(0.7),
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          'Click to choose file',
+                          style: TextStyle(
+                            color: Colors.grey.withOpacity(0.7),
+                            fontSize: 14,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+                if (_selectedFileName != null) ...[
+                  const SizedBox(height: 8),
+                  Text(
+                    'Click to change file',
+                    style: TextStyle(
+                      color: Colors.grey.withOpacity(0.7),
+                      fontSize: 14,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          'Supported formats: ${_selectedFileType == AppConstants.typePdf ? 'PDF/SWF' : 'HTML/SWF'}',
+          style: TextStyle(
+            fontSize: 14,
+            color: Colors.grey.withOpacity(0.7),
+            fontStyle: FontStyle.italic,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSubmitButton(CourseState state) {
+    return Container(
+      width: double.infinity,
+      height: 56,
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [Colors.black, Color(0xFF333333)],
+          begin: Alignment.centerLeft,
+          end: Alignment.centerRight,
+        ),
+        borderRadius: BorderRadius.circular(30),
+      ),
+      child: ElevatedButton(
+        onPressed: state is CourseLoading ? null : _saveCourse,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.transparent,
+          foregroundColor: Colors.white,
+          shadowColor: Colors.transparent,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(30),
+          ),
+          elevation: 0,
+        ),
+        child:
+            state is CourseLoading
+                ? const SizedBox(
+                  height: 24,
+                  width: 24,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                  ),
+                )
+                : Text(
+                  _isEditing ? 'Update Course' : 'Add Course',
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
       ),
     );
   }

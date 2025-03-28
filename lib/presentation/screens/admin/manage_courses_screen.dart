@@ -36,12 +36,15 @@ class _ManageCoursesScreenState extends State<ManageCoursesScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final screenSize = MediaQuery.of(context).size;
+    final isSmallScreen = screenSize.width < 600;
+    final isMediumScreen = screenSize.width >= 600 && screenSize.width < 1200;
+    final isLargeScreen = screenSize.width >= 1200;
+
     return Scaffold(
-      backgroundColor: const Color(
-        0xFFF8E8C8,
-      ), // Cream background color to match login screen
+      backgroundColor: const Color(0xFFF8E8C8),
       appBar: AppBar(
-        backgroundColor: Colors.black, // Black to match login button
+        backgroundColor: Colors.black,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () => Navigator.pop(context),
@@ -51,6 +54,7 @@ class _ManageCoursesScreenState extends State<ManageCoursesScreen> {
           style: AppTheme.titleLarge.copyWith(
             fontWeight: FontWeight.bold,
             color: Colors.white,
+            fontSize: isSmallScreen ? 20 : 24,
           ),
         ),
         elevation: 0,
@@ -80,17 +84,15 @@ class _ManageCoursesScreenState extends State<ManageCoursesScreen> {
         },
         builder: (context, state) {
           if (state is CourseLoading) {
-            return Center(
-              child: CircularProgressIndicator(
-                color: Colors.black, // Black to match theme
-              ),
+            return const Center(
+              child: CircularProgressIndicator(color: Colors.black),
             );
           } else if (state is CoursesLoaded) {
             return state.courses.isEmpty
-                ? _buildEmptyCoursesList()
-                : _buildCoursesList(state.courses);
+                ? _buildEmptyCoursesList(screenSize)
+                : _buildCoursesList(state.courses, screenSize);
           } else {
-            return _buildEmptyCoursesList();
+            return _buildEmptyCoursesList(screenSize);
           }
         },
       ),
@@ -102,79 +104,73 @@ class _ManageCoursesScreenState extends State<ManageCoursesScreen> {
             ),
           );
         },
-        backgroundColor: Colors.black, // Black to match login button
-        child: const Icon(Icons.add, color: Colors.white),
+        backgroundColor: Colors.black,
+        child: Icon(
+          Icons.add,
+          color: Colors.white,
+          size: isSmallScreen ? 24 : 28,
+        ),
       ),
     );
   }
 
-  Widget _buildEmptyCoursesList() {
+  Widget _buildEmptyCoursesList(Size screenSize) {
+    final isSmallScreen = screenSize.width < 600;
+    final containerWidth =
+        screenSize.width >= 1200
+            ? screenSize.width * 0.4
+            : (screenSize.width >= 600
+                ? screenSize.width * 0.6
+                : screenSize.width * 0.9);
+
     return Center(
       child: Container(
-        margin: const EdgeInsets.all(24),
-        padding: const EdgeInsets.all(32),
+        width: containerWidth,
+        margin: EdgeInsets.all(isSmallScreen ? 16 : 24),
+        padding: EdgeInsets.all(isSmallScreen ? 24 : 32),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(30),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 10,
+              offset: const Offset(0, 5),
+            ),
+          ],
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.book, size: 80, color: Colors.black38),
-            const SizedBox(height: 16),
+            Icon(
+              Icons.book,
+              size: isSmallScreen ? 60 : 80,
+              color: Colors.black38,
+            ),
+            SizedBox(height: isSmallScreen ? 12 : 16),
             Text(
               'No courses available',
               style: TextStyle(
-                fontSize: 18,
+                fontSize: isSmallScreen ? 16 : 18,
                 fontWeight: FontWeight.bold,
                 color: Colors.black,
               ),
             ),
-            const SizedBox(height: 8),
+            SizedBox(height: isSmallScreen ? 6 : 8),
             Text(
               'Add a new course by clicking the + button',
-              style: TextStyle(color: Colors.grey),
+              style: TextStyle(
+                color: Colors.grey,
+                fontSize: isSmallScreen ? 13 : 14,
+              ),
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 24),
-            Container(
+            SizedBox(height: isSmallScreen ? 20 : 24),
+            SizedBox(
               width: double.infinity,
-              height: 50,
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [Colors.black, Color(0xFF333333)],
-                  begin: Alignment.centerLeft,
-                  end: Alignment.centerRight,
-                ),
-                borderRadius: BorderRadius.circular(30),
-              ),
-              child: ElevatedButton.icon(
-                onPressed: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (context) => const AddEditCourseScreen(),
-                    ),
-                  );
-                },
-                icon: const Icon(Icons.add, color: Colors.white),
-                label: const Text(
-                  'Add Course',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.transparent,
-                  shadowColor: Colors.transparent,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(30),
-                  ),
-                  elevation: 0,
-                ),
-              ),
+              height: isSmallScreen ? 44 : 50,
+              child: _buildAddCourseButton(),
             ),
           ],
         ),
@@ -182,32 +178,67 @@ class _ManageCoursesScreenState extends State<ManageCoursesScreen> {
     );
   }
 
-  Widget _buildCoursesList(List<Course> courses) {
-    return Padding(
-      padding: const EdgeInsets.all(16),
+  Widget _buildCoursesList(List<Course> courses, Size screenSize) {
+    final isSmallScreen = screenSize.width < 600;
+    final isMediumScreen = screenSize.width >= 600 && screenSize.width < 1200;
+    final isLargeScreen = screenSize.width >= 1200;
+
+    final contentWidth =
+        isLargeScreen
+            ? screenSize.width * 0.7
+            : (isMediumScreen ? screenSize.width * 0.8 : screenSize.width);
+
+    return Center(
       child: Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(30),
+        width: contentWidth,
+        padding: EdgeInsets.symmetric(
+          vertical: isSmallScreen ? 16 : 24,
+          horizontal: isSmallScreen ? 0 : 16,
         ),
-        padding: const EdgeInsets.all(16),
         child: ListView.builder(
           itemCount: courses.length,
-          padding: const EdgeInsets.all(8),
           itemBuilder: (context, index) {
-            final course = courses[index];
-            return Card(
-              margin: const EdgeInsets.only(bottom: 16),
-              elevation: 0,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20),
-                side: BorderSide(color: Colors.grey.withOpacity(0.2)),
-              ),
-              child: ListTile(
-                contentPadding: const EdgeInsets.all(16),
-                leading: Container(
-                  width: 50,
-                  height: 50,
+            return _buildCourseCard(courses[index], screenSize);
+          },
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCourseCard(Course course, Size screenSize) {
+    final isSmallScreen = screenSize.width < 600;
+    final isMediumScreen = screenSize.width >= 600 && screenSize.width < 1200;
+
+    // Responsive sizes
+    final cardPadding = isSmallScreen ? 16.0 : 20.0;
+    final iconSize = isSmallScreen ? 48.0 : 56.0;
+    final titleSize = isSmallScreen ? 16.0 : 18.0;
+    final subtitleSize = isSmallScreen ? 13.0 : 14.0;
+    final tagSize = isSmallScreen ? 11.0 : 12.0;
+    final iconButtonSize = isSmallScreen ? 20.0 : 24.0;
+
+    return Card(
+      margin: EdgeInsets.symmetric(
+        horizontal: isSmallScreen ? 16 : 24,
+        vertical: isSmallScreen ? 8 : 12,
+      ),
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(20),
+        side: BorderSide(color: Colors.grey.withOpacity(0.2)),
+      ),
+      child: Padding(
+        padding: EdgeInsets.all(cardPadding),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Leading icon
+                Container(
+                  width: iconSize,
+                  height: iconSize,
                   decoration: BoxDecoration(
                     color:
                         course.fileType == AppConstants.typePdf
@@ -223,100 +254,182 @@ class _ManageCoursesScreenState extends State<ManageCoursesScreen> {
                         course.fileType == AppConstants.typePdf
                             ? Colors.red
                             : Colors.blue,
-                    size: 28,
+                    size: iconSize * 0.5,
                   ),
                 ),
-                title: Text(
-                  course.title,
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                ),
-                subtitle: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const SizedBox(height: 4),
-                    Text(
-                      course.description,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(color: Colors.grey[600]),
-                    ),
-                    const SizedBox(height: 8),
-                    Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 4,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Colors.grey[200],
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Text(
-                            course.className,
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Colors.black87,
-                            ),
-                          ),
+                SizedBox(width: isSmallScreen ? 16 : 20),
+                // Title and description
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        course.title,
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: titleSize,
+                          color: Colors.white,
                         ),
-                        const SizedBox(width: 8),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 4,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Colors.grey[200],
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Text(
-                            course.subject,
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Colors.black87,
-                            ),
-                          ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        course.description,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          color: Colors.grey[600],
+                          fontSize: subtitleSize,
+                          height: 1.4,
                         ),
-                      ],
-                    ),
-                  ],
+                      ),
+                    ],
+                  ),
                 ),
-                trailing: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    IconButton(
-                      icon: const Icon(Icons.edit, color: Colors.black),
-                      onPressed: () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder:
-                                (context) =>
-                                    AddEditCourseScreen(course: course),
-                          ),
-                        );
-                      },
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.delete, color: Colors.red),
-                      onPressed: () {
-                        _showDeleteConfirmationDialog(course);
-                      },
-                    ),
-                  ],
+                // Action buttons
+                if (!isSmallScreen) ...[
+                  const SizedBox(width: 16),
+                  _buildActionButtons(course, iconButtonSize),
+                ],
+              ],
+            ),
+            const SizedBox(height: 16),
+            // Tags and action buttons row
+            Row(
+              children: [
+                Expanded(
+                  child: Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: [
+                      _buildTag(course.className, tagSize),
+                      _buildTag(course.subject, tagSize),
+                    ],
+                  ),
                 ),
-                onTap: () {
-                  // View course details
-                },
-              ),
-            );
-          },
+                if (isSmallScreen) _buildActionButtons(course, iconButtonSize),
+              ],
+            ),
+          ],
         ),
       ),
     );
   }
 
+  Widget _buildActionButtons(Course course, double iconSize) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        _buildIconButton(
+          icon: Icons.edit_outlined,
+          color: Colors.white,
+          size: iconSize,
+          onTap: () => _navigateToEditScreen(course),
+        ),
+        const SizedBox(width: 8),
+        _buildIconButton(
+          icon: Icons.delete_outline,
+          color: Colors.red,
+          size: iconSize,
+          onTap: () => _showDeleteConfirmationDialog(course),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildIconButton({
+    required IconData icon,
+    required Color color,
+    required double size,
+    required VoidCallback onTap,
+  }) {
+    return Container(
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(8),
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Icon(icon, color: color, size: size),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTag(String text, double fontSize) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: Colors.grey[100],
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.grey.withOpacity(0.2)),
+      ),
+      child: Text(
+        text,
+        style: TextStyle(
+          fontSize: fontSize,
+          color: Colors.black87,
+          fontWeight: FontWeight.w500,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAddCourseButton() {
+    return Container(
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [Colors.black, Color(0xFF333333)],
+          begin: Alignment.centerLeft,
+          end: Alignment.centerRight,
+        ),
+        borderRadius: BorderRadius.circular(30),
+      ),
+      child: ElevatedButton.icon(
+        onPressed: () => _navigateToAddScreen(),
+        icon: const Icon(Icons.add, color: Colors.white),
+        label: const Text(
+          'Add Course',
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 16,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.transparent,
+          shadowColor: Colors.transparent,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(30),
+          ),
+          elevation: 0,
+        ),
+      ),
+    );
+  }
+
+  void _navigateToAddScreen() {
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (context) => const AddEditCourseScreen()),
+    );
+  }
+
+  void _navigateToEditScreen(Course course) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => AddEditCourseScreen(course: course),
+      ),
+    );
+  }
+
   void _showDeleteConfirmationDialog(Course course) {
+    final isSmallScreen = MediaQuery.of(context).size.width < 600;
+
     showDialog(
       context: context,
       builder:
@@ -324,14 +437,23 @@ class _ManageCoursesScreenState extends State<ManageCoursesScreen> {
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(20),
             ),
-            title: const Text('Delete Course'),
-            content: Text('Are you sure you want to delete "${course.title}"?'),
+            title: Text(
+              'Delete Course',
+              style: TextStyle(fontSize: isSmallScreen ? 18 : 20),
+            ),
+            content: Text(
+              'Are you sure you want to delete "${course.title}"?',
+              style: TextStyle(fontSize: isSmallScreen ? 14 : 16),
+            ),
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(context).pop(),
-                child: const Text(
+                child: Text(
                   'Cancel',
-                  style: TextStyle(color: Colors.black),
+                  style: TextStyle(
+                    color: Colors.black,
+                    fontSize: isSmallScreen ? 14 : 16,
+                  ),
                 ),
               ),
               Container(
@@ -350,9 +472,12 @@ class _ManageCoursesScreenState extends State<ManageCoursesScreen> {
                       DeleteCourseEvent(id: course.id),
                     );
                   },
-                  child: const Text(
+                  child: Text(
                     'Delete',
-                    style: TextStyle(color: Colors.white),
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: isSmallScreen ? 14 : 16,
+                    ),
                   ),
                 ),
               ),
