@@ -6,7 +6,6 @@ import 'package:flutter_pdfview/flutter_pdfview.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'package:video_player/video_player.dart';
 import 'package:chewie/chewie.dart';
-import '../../../core/utils/thumbnail_utils.dart';
 
 import '../../../core/constants/app_constants.dart';
 import '../../../core/theme/app_theme.dart';
@@ -36,25 +35,10 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
   @override
   void initState() {
     super.initState();
-    if (widget.course.isVideo) {
-      _generateThumbnail();
-    }
+
     context.read<FileBloc>().add(
       CheckFileStatusEvent(fileId: widget.course.id),
     );
-  }
-
-  Future<void> _generateThumbnail() async {
-    if (widget.course.filePath.isNotEmpty) {
-      final thumbnailPath = await ThumbnailUtils.generateThumbnail(
-        widget.course.filePath,
-      );
-      if (mounted) {
-        setState(() {
-          _thumbnailPath = thumbnailPath;
-        });
-      }
-    }
   }
 
   @override

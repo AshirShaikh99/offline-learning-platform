@@ -2,11 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../core/theme/app_theme.dart';
+import '../../../domain/entities/user.dart';
 import '../../blocs/auth/auth_bloc.dart';
 import '../../blocs/auth/auth_event.dart';
 import '../../blocs/auth/auth_state.dart';
 import '../login_screen.dart';
-import 'subject_selection_screen.dart';
+import 'content_viewer_screen.dart';
 import '../../widgets/learning_activity_card.dart';
 import '../../utils/number_icons.dart';
 
@@ -19,37 +20,47 @@ class StudentDashboard extends StatefulWidget {
 }
 
 class _StudentDashboardState extends State<StudentDashboard> {
+  final List<Map<String, dynamic>> _subjects = [
+    {'name': 'English', 'icon': Icons.book, 'color': Colors.blue},
+    {'name': 'Math', 'icon': Icons.calculate, 'color': Colors.red},
+    {'name': 'Science', 'icon': Icons.science, 'color': Colors.green},
+    {'name': 'Social Studies', 'icon': Icons.public, 'color': Colors.orange},
+    {'name': 'Computer', 'icon': Icons.computer, 'color': Colors.purple},
+    {'name': 'Islamiat', 'icon': Icons.mosque, 'color': Colors.teal},
+    {'name': 'GK', 'icon': Icons.psychology, 'color': Colors.brown},
+    {'name': 'Urdu', 'icon': Icons.language, 'color': Colors.indigo},
+    {'name': 'Sindhi', 'icon': Icons.translate, 'color': Colors.deepOrange},
+  ];
+
   @override
   Widget build(BuildContext context) {
     final screenSize = MediaQuery.of(context).size;
     final isSmallScreen = screenSize.width < 600;
 
-    return BlocListener<AuthBloc, AuthState>(
-      listenWhen:
-          (previous, current) =>
-              current is Unauthenticated && previous is! AuthInitial,
-      listener: (context, state) {
-        if (state is Unauthenticated) {
-          Navigator.of(context).pushAndRemoveUntil(
-            MaterialPageRoute(builder: (context) => const LoginScreen()),
-            (route) => false,
+    return BlocBuilder<AuthBloc, AuthState>(
+      builder: (context, state) {
+        if (state is Authenticated) {
+          return Scaffold(
+            backgroundColor: const Color(0xFFF8EAC8),
+            body: CustomScrollView(
+              slivers: [
+                _buildAppBar(isSmallScreen),
+                SliverToBoxAdapter(
+                  child: _buildWelcomeSection(isSmallScreen, state.user),
+                ),
+                SliverToBoxAdapter(
+                  child: _buildActivitiesSection(isSmallScreen),
+                ),
+                SliverPadding(
+                  padding: EdgeInsets.all(isSmallScreen ? 12 : 16),
+                  sliver: _buildSubjectGrid(isSmallScreen),
+                ),
+              ],
+            ),
           );
         }
+        return const Center(child: CircularProgressIndicator());
       },
-      child: Scaffold(
-        backgroundColor: const Color(0xFFF8EAC8),
-        body: CustomScrollView(
-          slivers: [
-            _buildAppBar(isSmallScreen),
-            SliverToBoxAdapter(child: _buildWelcomeSection(isSmallScreen)),
-            SliverToBoxAdapter(child: _buildActivitiesSection(isSmallScreen)),
-            SliverPadding(
-              padding: EdgeInsets.all(isSmallScreen ? 12 : 16),
-              sliver: _buildClassGrid(isSmallScreen),
-            ),
-          ],
-        ),
-      ),
     );
   }
 
@@ -88,7 +99,7 @@ class _StudentDashboardState extends State<StudentDashboard> {
     );
   }
 
-  Widget _buildWelcomeSection(bool isSmallScreen) {
+  Widget _buildWelcomeSection(bool isSmallScreen, User user) {
     return Padding(
       padding: EdgeInsets.fromLTRB(
         isSmallScreen ? 12 : 16,
@@ -101,7 +112,7 @@ class _StudentDashboardState extends State<StudentDashboard> {
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(
-            'Welcome Student',
+            'Welcome ${user.username}',
             style: AppTheme.headlineMedium.copyWith(
               color: Colors.black,
               fontWeight: FontWeight.bold,
@@ -110,7 +121,7 @@ class _StudentDashboardState extends State<StudentDashboard> {
           ),
           SizedBox(height: isSmallScreen ? 6 : 8),
           Text(
-            'Access your learning materials',
+            'Class: ${user.className}',
             style: AppTheme.bodyLarge.copyWith(
               color: Colors.black54,
               fontSize: isSmallScreen ? 14 : 16,
@@ -121,27 +132,7 @@ class _StudentDashboardState extends State<StudentDashboard> {
     );
   }
 
-  Widget _buildClassGrid(bool isSmallScreen) {
-    final List<Map<String, dynamic>> classes = [
-      {'name': 'Play Group', 'icon': Icons.child_care, 'color': Colors.black},
-      {
-        'name': 'Nursery',
-        'icon': Icons.child_friendly,
-        'color': Colors.black87,
-      },
-      {'name': 'KG', 'icon': Icons.auto_stories, 'color': Colors.black},
-      {'name': 'Class 1', 'icon': Icons.looks_one, 'color': Colors.black87},
-      {'name': 'Class 2', 'icon': Icons.looks_two, 'color': Colors.black},
-      {'name': 'Class 3', 'icon': Icons.looks_3, 'color': Colors.black87},
-      {'name': 'Class 4', 'icon': Icons.looks_4, 'color': Colors.black},
-      {'name': 'Class 5', 'icon': Icons.looks_5, 'color': Colors.black87},
-      {'name': 'Class 6', 'icon': Icons.looks_6, 'color': Colors.black},
-      {'name': 'Class 7', 'icon': Icons.grade, 'color': Colors.black87},
-      {'name': 'Class 8', 'icon': Icons.school, 'color': Colors.black},
-      {'name': 'Class 9', 'icon': Icons.menu_book, 'color': Colors.black87},
-      {'name': 'Class 10', 'icon': Icons.psychology, 'color': Colors.black},
-    ];
-
+  Widget _buildSubjectGrid(bool isSmallScreen) {
     return SliverGrid(
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: isSmallScreen ? 2 : 3,
@@ -150,106 +141,119 @@ class _StudentDashboardState extends State<StudentDashboard> {
         mainAxisSpacing: isSmallScreen ? 12 : 16,
       ),
       delegate: SliverChildBuilderDelegate((context, index) {
-        final className = classes[index]['name'] as String;
-        final iconData = classes[index]['icon'] as IconData;
-        final color = classes[index]['color'] as Color;
-        return _buildClassCard(className, iconData, color, isSmallScreen);
-      }, childCount: classes.length),
+        final subject = _subjects[index];
+        return _buildSubjectCard(
+          subject['name'] as String,
+          subject['icon'] as IconData,
+          subject['color'] as Color,
+          isSmallScreen,
+        );
+      }, childCount: _subjects.length),
     );
   }
 
-  Widget _buildClassCard(
-    String className,
+  Widget _buildSubjectCard(
+    String subjectName,
     IconData icon,
     Color color,
     bool isSmallScreen,
   ) {
-    return Card(
-      elevation: 0,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(isSmallScreen ? 16 : 20),
-      ),
-      child: InkWell(
-        onTap:
-            () => Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder:
-                    (context) => SubjectSelectionScreen(className: className),
-              ),
+    return BlocBuilder<AuthBloc, AuthState>(
+      builder: (context, state) {
+        if (state is Authenticated) {
+          return Card(
+            elevation: 0,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(isSmallScreen ? 16 : 20),
             ),
-        borderRadius: BorderRadius.circular(isSmallScreen ? 16 : 20),
-        child: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [color, color.withOpacity(0.8)],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-            borderRadius: BorderRadius.circular(isSmallScreen ? 16 : 20),
-            boxShadow: [
-              BoxShadow(
-                color: color.withOpacity(0.2),
-                blurRadius: isSmallScreen ? 6 : 8,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
-          child: Stack(
-            children: [
-              Positioned(
-                right: -20,
-                bottom: -20,
-                child: Icon(
-                  icon,
-                  size: isSmallScreen ? 80 : 100,
-                  color: Colors.white.withOpacity(0.2),
+            child: InkWell(
+              onTap:
+                  () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder:
+                          (context) => ContentViewerScreen(
+                            className: state.user.className!,
+                            subject: subjectName,
+                          ),
+                    ),
+                  ),
+              borderRadius: BorderRadius.circular(isSmallScreen ? 16 : 20),
+              child: Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [color, color.withOpacity(0.8)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(isSmallScreen ? 16 : 20),
+                  boxShadow: [
+                    BoxShadow(
+                      color: color.withOpacity(0.2),
+                      blurRadius: isSmallScreen ? 6 : 8,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
                 ),
-              ),
-              Padding(
-                padding: EdgeInsets.all(isSmallScreen ? 16 : 20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
+                child: Stack(
                   children: [
-                    Icon(
-                      icon,
-                      color: Colors.white,
-                      size: isSmallScreen ? 28 : 32,
-                    ),
-                    const Spacer(),
-                    Text(
-                      className,
-                      style: AppTheme.titleLarge.copyWith(
-                        color: Colors.white,
-                        fontSize: isSmallScreen ? 16 : 18,
-                      ),
-                    ),
-                    SizedBox(height: isSmallScreen ? 6 : 8),
-                    Container(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: isSmallScreen ? 10 : 12,
-                        vertical: isSmallScreen ? 4 : 6,
-                      ),
-                      decoration: BoxDecoration(
+                    Positioned(
+                      right: -20,
+                      bottom: -20,
+                      child: Icon(
+                        icon,
+                        size: isSmallScreen ? 80 : 100,
                         color: Colors.white.withOpacity(0.2),
-                        borderRadius: BorderRadius.circular(30),
                       ),
-                      child: Text(
-                        'Explore Subjects',
-                        style: AppTheme.bodyMedium.copyWith(
-                          color: Colors.white,
-                          fontSize: isSmallScreen ? 10 : 12,
-                        ),
+                    ),
+                    Padding(
+                      padding: EdgeInsets.all(isSmallScreen ? 16 : 20),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            icon,
+                            color: Colors.white,
+                            size: isSmallScreen ? 28 : 32,
+                          ),
+                          const Spacer(),
+                          Text(
+                            subjectName,
+                            style: AppTheme.titleLarge.copyWith(
+                              color: Colors.white,
+                              fontSize: isSmallScreen ? 16 : 18,
+                            ),
+                          ),
+                          SizedBox(height: isSmallScreen ? 6 : 8),
+                          Container(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: isSmallScreen ? 10 : 12,
+                              vertical: isSmallScreen ? 4 : 6,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.2),
+                              borderRadius: BorderRadius.circular(30),
+                            ),
+                            child: Text(
+                              'View Content',
+                              style: AppTheme.bodyMedium.copyWith(
+                                color: Colors.white,
+                                fontSize: isSmallScreen ? 10 : 12,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ],
                 ),
               ),
-            ],
-          ),
-        ),
-      ),
+            ),
+          );
+        }
+        return const SizedBox.shrink();
+      },
     );
   }
 
