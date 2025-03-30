@@ -6,6 +6,7 @@ import 'package:flutter_pdfview/flutter_pdfview.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'package:video_player/video_player.dart';
 import 'package:chewie/chewie.dart';
+import '../../../core/utils/thumbnail_utils.dart';
 
 import '../../../core/constants/app_constants.dart';
 import '../../../core/theme/app_theme.dart';
@@ -28,15 +29,32 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
   late WebViewController _webViewController;
   VideoPlayerController? _videoPlayerController;
   ChewieController? _chewieController;
+  String? _thumbnailPath;
   int _pdfTotalPages = 0;
   int _pdfCurrentPage = 0;
 
   @override
   void initState() {
     super.initState();
+    if (widget.course.isVideo) {
+      _generateThumbnail();
+    }
     context.read<FileBloc>().add(
       CheckFileStatusEvent(fileId: widget.course.id),
     );
+  }
+
+  Future<void> _generateThumbnail() async {
+    if (widget.course.filePath.isNotEmpty) {
+      final thumbnailPath = await ThumbnailUtils.generateThumbnail(
+        widget.course.filePath,
+      );
+      if (mounted) {
+        setState(() {
+          _thumbnailPath = thumbnailPath;
+        });
+      }
+    }
   }
 
   @override
@@ -59,30 +77,40 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
   Widget _buildCourseInfo() {
     return Container(
       padding: const EdgeInsets.all(16),
-      color: AppTheme.primaryColor.withOpacity(0.1),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          if (widget.course.isVideo && _thumbnailPath != null)
+            Container(
+              height: 200,
+              width: double.infinity,
+              margin: const EdgeInsets.only(bottom: 16),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(12),
+                color: Colors.black.withOpacity(0.1),
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: Image.file(File(_thumbnailPath!), fit: BoxFit.cover),
+              ),
+            ),
           Text(
             widget.course.title,
-            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            widget.course.description,
-            style: const TextStyle(fontSize: 14, color: Colors.black87),
+            style: Theme.of(context).textTheme.headlineSmall,
           ),
           const SizedBox(height: 8),
           Row(
             children: [
               Icon(
-                widget.course.isPdf ? Icons.picture_as_pdf : Icons.flash_on,
+                widget.course.isPdf
+                    ? Icons.picture_as_pdf
+                    : Icons.video_library,
                 size: 16,
                 color: Colors.grey,
               ),
               const SizedBox(width: 4),
               Text(
-                widget.course.isPdf ? 'PDF Document' : 'Flash Content',
+                widget.course.isPdf ? 'PDF Document' : 'Video Content',
                 style: const TextStyle(fontSize: 12, color: Colors.grey),
               ),
               const SizedBox(width: 16),

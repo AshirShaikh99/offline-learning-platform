@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:video_player/video_player.dart';
+import 'package:chewie/chewie.dart';
+import 'dart:io';
 
 import '../../../core/constants/app_constants.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/utils/file_utils.dart';
+import '../../../core/utils/thumbnail_utils.dart';
 import '../../blocs/file/file_bloc.dart';
 import '../../blocs/file/file_event.dart';
 import '../../blocs/file/file_state.dart';
@@ -26,6 +30,70 @@ class ContentViewerScreen extends StatefulWidget {
 }
 
 class _ContentViewerScreenState extends State<ContentViewerScreen> {
+  final Map<String, ChewieController?> _videoControllers = {};
+
+  @override
+  void dispose() {
+    _disposeAllControllers();
+    super.dispose();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Clear controllers when dependencies change (including hot restart)
+    _disposeAllControllers();
+  }
+
+  void _disposeAllControllers() {
+    for (var controller in _videoControllers.values) {
+      if (controller != null) {
+        controller.videoPlayerController.dispose();
+        controller.dispose();
+      }
+    }
+    _videoControllers.clear();
+  }
+
+  Future<ChewieController?> _initializeVideoPlayer(String videoPath) async {
+    // Dispose existing controller for this video if it exists
+    if (_videoControllers.containsKey(videoPath)) {
+      final existingController = _videoControllers[videoPath];
+      if (existingController != null) {
+        existingController.videoPlayerController.dispose();
+        existingController.dispose();
+        _videoControllers.remove(videoPath);
+      }
+    }
+
+    try {
+      final videoPlayerController = VideoPlayerController.file(File(videoPath));
+      await videoPlayerController.initialize();
+
+      final chewieController = ChewieController(
+        videoPlayerController: videoPlayerController,
+        autoPlay: false,
+        looping: false,
+        aspectRatio: videoPlayerController.value.aspectRatio,
+        allowFullScreen: true,
+        allowMuting: true,
+        showControls: true,
+        placeholder: Container(
+          color: Colors.black.withOpacity(0.1),
+          child: const Center(
+            child: CircularProgressIndicator(color: Colors.white),
+          ),
+        ),
+      );
+
+      _videoControllers[videoPath] = chewieController;
+      return chewieController;
+    } catch (e) {
+      debugPrint('Error initializing video player: $e');
+      return null;
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -116,96 +184,112 @@ class _ContentViewerScreenState extends State<ContentViewerScreen> {
 
   Widget _buildFileCard(dynamic file) {
     final bool isPdf = file.fileType == AppConstants.typePdf;
+    final bool isVideo = !isPdf;
 
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
       elevation: 0,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(20),
-        onTap: () {
-          if (isPdf) {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder:
-                    (context) =>
-                        PdfViewer(filePath: file.filePath, title: file.title),
+      color: Colors.black, // Set card background to black
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (isVideo)
+            ClipRRect(
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(20),
               ),
-            );
-          } else {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder:
-                    (context) =>
-                        HtmlViewer(filePath: file.filePath, title: file.title),
-              ),
-            );
-          }
-        },
-        child: Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: Colors.black.withOpacity(0.1), width: 1),
-          ),
-          child: Row(
-            children: [
-              Container(
-                width: 60,
-                height: 60,
-                decoration: BoxDecoration(
-                  color: Colors.black.withOpacity(0.05),
-                  borderRadius: BorderRadius.circular(15),
+              child: AspectRatio(
+                aspectRatio: 16 / 9,
+                child: FutureBuilder<ChewieController?>(
+                  future: _initializeVideoPlayer(file.filePath),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return Container(
+                        color: Colors.black.withOpacity(0.1),
+                        child: const Center(
+                          child: CircularProgressIndicator(color: Colors.white),
+                        ),
+                      );
+                    }
+
+                    if (snapshot.hasError || snapshot.data == null) {
+                      return Container(
+                        color: Colors.black.withOpacity(0.1),
+                        child: const Center(
+                          child: Icon(
+                            Icons.error_outline,
+                            size: 50,
+                            color: Colors.red,
+                          ),
+                        ),
+                      );
+                    }
+
+                    return Chewie(controller: snapshot.data!);
+                  },
                 ),
-                child: Center(
-                  child: Icon(
-                    isPdf ? Icons.picture_as_pdf : Icons.flash_on,
-                    color: Colors.black,
-                    size: 30,
+              ),
+            ),
+          if (isPdf)
+            InkWell(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder:
+                        (context) => PdfViewer(
+                          filePath: file.filePath,
+                          title: file.title,
+                        ),
                   ),
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                );
+              },
+              child: Container(
+                padding: const EdgeInsets.all(16),
+                child: Row(
                   children: [
-                    Text(
-                      file.title,
-                      style: AppTheme.labelLarge.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black,
+                    Container(
+                      width: 60,
+                      height: 60,
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(15),
+                      ),
+                      child: const Center(
+                        child: Icon(
+                          Icons.picture_as_pdf,
+                          color: Colors.white,
+                          size: 30,
+                        ),
                       ),
                     ),
-                    const SizedBox(height: 4),
-                    Text(
-                      'Type: ${file.fileType}',
-                      style: AppTheme.bodyMedium.copyWith(
-                        color: Colors.black54,
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Text(
+                        file.title,
+                        style: AppTheme.labelLarge.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
                       ),
                     ),
                   ],
                 ),
               ),
-              Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: Colors.black,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: const Icon(
-                  Icons.arrow_forward,
+            ),
+          if (isVideo)
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Text(
+                file.title,
+                style: AppTheme.labelLarge.copyWith(
+                  fontWeight: FontWeight.bold,
                   color: Colors.white,
-                  size: 20,
                 ),
               ),
-            ],
-          ),
-        ),
+            ),
+        ],
       ),
     );
   }

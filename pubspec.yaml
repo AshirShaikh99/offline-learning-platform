@@ -67,6 +67,7 @@ dependencies:
   # Hive Generators
   hive_generator: ^2.0.1
   build_runner: ^2.4.8
+  video_thumbnail: ^0.5.3
 
 dev_dependencies:
   flutter_test:

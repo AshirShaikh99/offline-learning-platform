@@ -42,6 +42,12 @@
 @import video_player_avfoundation;
 #endif
 
+#if __has_include(<video_thumbnail/VideoThumbnailPlugin.h>)
+#import <video_thumbnail/VideoThumbnailPlugin.h>
+#else
+@import video_thumbnail;
+#endif
+
 #if __has_include(<wakelock_plus/WakelockPlusPlugin.h>)
 #import <wakelock_plus/WakelockPlusPlugin.h>
 #else
@@ -63,6 +69,7 @@
   [PathProviderPlugin registerWithRegistrar:[registry registrarForPlugin:@"PathProviderPlugin"]];
   [SqflitePlugin registerWithRegistrar:[registry registrarForPlugin:@"SqflitePlugin"]];
   [FVPVideoPlayerPlugin registerWithRegistrar:[registry registrarForPlugin:@"FVPVideoPlayerPlugin"]];
+  [VideoThumbnailPlugin registerWithRegistrar:[registry registrarForPlugin:@"VideoThumbnailPlugin"]];
   [WakelockPlusPlugin registerWithRegistrar:[registry registrarForPlugin:@"WakelockPlusPlugin"]];
   [WebViewFlutterPlugin registerWithRegistrar:[registry registrarForPlugin:@"WebViewFlutterPlugin"]];
 }
