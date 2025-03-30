@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:math';
+import 'package:flutter/services.dart';
 
 class SpellingGameScreen extends StatefulWidget {
   final List<Map<String, String>> words;
@@ -21,6 +22,7 @@ class _SpellingGameScreenState extends State<SpellingGameScreen> {
   List<String?> userAnswer = [];
   bool isCorrect = false;
   int currentWordIndex = 0;
+  bool showError = false;
 
   @override
   void initState() {
@@ -33,6 +35,7 @@ class _SpellingGameScreenState extends State<SpellingGameScreen> {
     shuffledLetters = currentWord['word']!.split('')..shuffle();
     userAnswer = List.filled(currentWord['word']!.length, null);
     isCorrect = false;
+    showError = false;
   }
 
   void _checkAnswer() {
@@ -69,7 +72,40 @@ class _SpellingGameScreenState extends State<SpellingGameScreen> {
               ],
             ),
       );
+    } else {
+      // Show error feedback if word is complete but incorrect
+      if (!userAnswer.contains(null)) {
+        setState(() {
+          showError = true;
+        });
+        // Shake animation effect
+        _showErrorAnimation();
+      }
     }
+  }
+
+  void _showErrorAnimation() {
+    // Vibrate if available
+    HapticFeedback.mediumImpact();
+
+    // Show error snackbar
+    ScaffoldMessenger.of(context)
+      ..removeCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: const Text('Try again! You can do it! 💪'),
+          backgroundColor: Colors.red.shade400,
+          duration: const Duration(seconds: 2),
+          behavior: SnackBarBehavior.floating,
+          action: SnackBarAction(
+            label: 'Reset',
+            textColor: Colors.white,
+            onPressed: () {
+              setState(() => _initializeWord());
+            },
+          ),
+        ),
+      );
   }
 
   @override
@@ -79,11 +115,30 @@ class _SpellingGameScreenState extends State<SpellingGameScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Spelling Game'),
+        title: Row(
+          children: [
+            const Text('Spelling Game'),
+            const Spacer(),
+            Text(
+              'Word ${currentWordIndex + 1}/${widget.words.length}',
+              style: const TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.normal,
+              ),
+            ),
+          ],
+        ),
         backgroundColor: widget.color,
       ),
       body: Column(
         children: [
+          // Progress indicator
+          LinearProgressIndicator(
+            value: (currentWordIndex + 1) / widget.words.length,
+            backgroundColor: widget.color.withOpacity(0.1),
+            valueColor: AlwaysStoppedAnimation<Color>(widget.color),
+          ),
+
           // Hint Section
           Container(
             padding: EdgeInsets.all(isSmallScreen ? 16 : 24),
@@ -165,29 +220,40 @@ class _SpellingGameScreenState extends State<SpellingGameScreen> {
   }
 
   Widget _buildAnswerSlot(int index, bool isSmallScreen) {
+    final bool isError = showError && !userAnswer.contains(null);
+
     return DragTarget<String>(
       onWillAccept: (data) => userAnswer[index] == null,
       onAccept: (data) {
         setState(() {
+          showError = false; // Reset error state when new letter is dropped
           userAnswer[index] = data;
           _checkAnswer();
         });
       },
       builder:
-          (context, candidateData, rejectedData) => Container(
+          (context, candidateData, rejectedData) => AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
             width: isSmallScreen ? 40 : 50,
             height: isSmallScreen ? 40 : 50,
             margin: const EdgeInsets.symmetric(horizontal: 4),
             decoration: BoxDecoration(
-              color:
-                  userAnswer[index] != null
-                      ? widget.color.withOpacity(0.1)
-                      : Colors.grey.withOpacity(0.1),
+              color: _getSlotColor(index, isError),
               borderRadius: BorderRadius.circular(8),
               border: Border.all(
-                color: userAnswer[index] != null ? widget.color : Colors.grey,
+                color: _getSlotBorderColor(index, isError),
                 width: 2,
               ),
+              boxShadow:
+                  isError
+                      ? [
+                        BoxShadow(
+                          color: Colors.red.withOpacity(0.3),
+                          blurRadius: 8,
+                          spreadRadius: 2,
+                        ),
+                      ]
+                      : null,
             ),
             child: Center(
               child: Text(
@@ -195,12 +261,28 @@ class _SpellingGameScreenState extends State<SpellingGameScreen> {
                 style: TextStyle(
                   fontSize: isSmallScreen ? 20 : 24,
                   fontWeight: FontWeight.bold,
-                  color: widget.color,
+                  color: isError ? Colors.red : widget.color,
                 ),
               ),
             ),
           ),
     );
+  }
+
+  Color _getSlotColor(int index, bool isError) {
+    if (isError) {
+      return Colors.red.withOpacity(0.1);
+    }
+    return userAnswer[index] != null
+        ? widget.color.withOpacity(0.1)
+        : Colors.grey.withOpacity(0.1);
+  }
+
+  Color _getSlotBorderColor(int index, bool isError) {
+    if (isError) {
+      return Colors.red;
+    }
+    return userAnswer[index] != null ? widget.color : Colors.grey;
   }
 
   Widget _buildDraggableLetter(String letter, bool isSmallScreen) {
@@ -250,7 +332,8 @@ class _SpellingGameScreenState extends State<SpellingGameScreen> {
           borderRadius: BorderRadius.circular(8),
         ),
       ),
-      child: Container(
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
         width: isSmallScreen ? 40 : 50,
         height: isSmallScreen ? 40 : 50,
         decoration: BoxDecoration(
