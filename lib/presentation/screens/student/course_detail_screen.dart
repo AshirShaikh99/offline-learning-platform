@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_pdfview/flutter_pdfview.dart';
 import 'package:webview_flutter/webview_flutter.dart';
+import 'package:video_player/video_player.dart';
+import 'package:chewie/chewie.dart';
 
 import '../../../core/constants/app_constants.dart';
 import '../../../core/theme/app_theme.dart';
@@ -24,21 +26,24 @@ class CourseDetailScreen extends StatefulWidget {
 
 class _CourseDetailScreenState extends State<CourseDetailScreen> {
   late WebViewController _webViewController;
+  VideoPlayerController? _videoPlayerController;
+  ChewieController? _chewieController;
   int _pdfTotalPages = 0;
   int _pdfCurrentPage = 0;
 
   @override
   void initState() {
     super.initState();
-    // Check file status when screen is loaded
     context.read<FileBloc>().add(
       CheckFileStatusEvent(fileId: widget.course.id),
     );
+  }
 
-    if (widget.course.isFlash) {
-      _webViewController =
-          WebViewController()..setJavaScriptMode(JavaScriptMode.unrestricted);
-    }
+  @override
+  void dispose() {
+    _videoPlayerController?.dispose();
+    _chewieController?.dispose();
+    super.dispose();
   }
 
   @override
@@ -105,9 +110,8 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
     return BlocConsumer<FileBloc, FileState>(
       listener: (context, state) {
         if (state is FileDownloaded && state.fileId == widget.course.id) {
-          // If file is Flash, load it into WebView
-          if (widget.course.isFlash) {
-            _webViewController.loadFile(state.filePath);
+          if (widget.course.isVideo) {
+            _initializeVideo(state.filePath);
           }
         }
       },
@@ -180,8 +184,8 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
             state.fileId == widget.course.id) {
           if (widget.course.isPdf) {
             return _buildPdfViewer(state.filePath);
-          } else if (widget.course.isFlash) {
-            return _buildFlashViewer();
+          } else if (widget.course.isVideo) {
+            return _buildVideoPlayer();
           }
         }
 
@@ -235,7 +239,24 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
     );
   }
 
-  Widget _buildFlashViewer() {
-    return WebViewWidget(controller: _webViewController);
+  Future<void> _initializeVideo(String filePath) async {
+    _videoPlayerController = VideoPlayerController.file(File(filePath));
+    await _videoPlayerController!.initialize();
+
+    _chewieController = ChewieController(
+      videoPlayerController: _videoPlayerController!,
+      autoPlay: false,
+      looping: false,
+      aspectRatio: _videoPlayerController!.value.aspectRatio,
+      placeholder: Center(child: CircularProgressIndicator()),
+    );
+    setState(() {});
+  }
+
+  Widget _buildVideoPlayer() {
+    if (_chewieController == null) {
+      return Center(child: CircularProgressIndicator());
+    }
+    return Chewie(controller: _chewieController!);
   }
 }

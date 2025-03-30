@@ -31,8 +31,8 @@ class Course extends Equatable {
   /// Check if course is PDF
   bool get isPdf => fileType == AppConstants.typePdf;
 
-  /// Check if course is Flash
-  bool get isFlash => fileType == AppConstants.typeFlash;
+  /// Check if course is Video
+  bool get isVideo => fileType == AppConstants.typeVideo;
 
   /// Create a copy of this course with the given fields replaced with the new values
   Course copyWith({

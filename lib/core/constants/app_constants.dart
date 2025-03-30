@@ -15,7 +15,7 @@ class AppConstants {
 
   // File Types
   static const String typePdf = 'pdf';
-  static const String typeFlash = 'flash';
+  static const String typeVideo = 'video';
 
   // Routes
   static const String routeLogin = '/login';

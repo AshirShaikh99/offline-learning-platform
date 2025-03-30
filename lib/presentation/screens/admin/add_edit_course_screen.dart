@@ -91,7 +91,9 @@ class _AddEditCourseScreenState extends State<AddEditCourseScreen> {
     FilePickerResult? result = await FilePicker.platform.pickFiles(
       type: FileType.custom,
       allowedExtensions:
-          _selectedFileType == AppConstants.typePdf ? ['pdf'] : ['swf', 'html'],
+          _selectedFileType == AppConstants.typePdf
+              ? ['pdf']
+              : ['mp4', 'mov', 'avi', 'mkv'], // Support common video formats
     );
 
     if (result != null) {
@@ -283,7 +285,7 @@ class _AddEditCourseScreenState extends State<AddEditCourseScreen> {
                       const SizedBox(height: 24),
                       _buildDropdown<String>(
                         value: _selectedFileType,
-                        items: [AppConstants.typePdf, AppConstants.typeFlash],
+                        items: [AppConstants.typePdf, AppConstants.typeVideo],
                         hintText: 'File Type',
                         icon: Icons.file_present_outlined,
                         onChanged: (value) {
@@ -302,7 +304,7 @@ class _AddEditCourseScreenState extends State<AddEditCourseScreen> {
                             (item) =>
                                 item == AppConstants.typePdf
                                     ? 'PDF Document'
-                                    : 'Flash/HTML Content',
+                                    : 'Video Content',
                       ),
                       const SizedBox(height: 24),
                       _buildFileUploadSection(),
