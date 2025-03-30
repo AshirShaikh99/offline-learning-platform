@@ -274,6 +274,23 @@ class _StudentDashboardState extends State<StudentDashboard> {
           (index) => {'text': String.fromCharCode(65 + index)},
         ),
       },
+      // Add new spelling activity
+      {
+        'title': 'Spelling Game',
+        'icon': Icons.drag_indicator,
+        'color': Colors.pink,
+        'isSpellingGame': true,
+        'items': [
+          {'word': 'CAT', 'hint': 'A furry pet that says meow'},
+          {'word': 'DOG', 'hint': 'A loyal pet that barks'},
+          {'word': 'BALL', 'hint': 'A round toy you can throw'},
+          {'word': 'BOOK', 'hint': 'You read stories in it'},
+          {'word': 'TREE', 'hint': 'Grows tall and has leaves'},
+          {'word': 'FISH', 'hint': 'Swims in water'},
+          {'word': 'STAR', 'hint': 'Twinkles in the night sky'},
+          {'word': 'BIRD', 'hint': 'Has wings and can fly'},
+        ],
+      },
       {
         'title': 'Shapes',
         'icon': Icons.category,

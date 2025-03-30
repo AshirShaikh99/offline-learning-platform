@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../screens/student/learning_activity_screen.dart';
+import '../screens/student/spelling_game_screen.dart';
 
 class LearningActivityCard extends StatelessWidget {
   final String title;
@@ -24,12 +25,21 @@ class LearningActivityCard extends StatelessWidget {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder:
-                (context) => LearningActivityScreen(
-                  title: title,
+            builder: (context) {
+              if (items.first.containsKey('word')) {
+                // Handle spelling game
+                return SpellingGameScreen(
+                  words: List<Map<String, String>>.from(items),
                   color: color,
-                  items: items,
-                ),
+                );
+              }
+              // Handle other activities
+              return LearningActivityScreen(
+                title: title,
+                color: color,
+                items: items,
+              );
+            },
           ),
         );
       },
