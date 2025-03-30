@@ -7,6 +7,8 @@ import '../../blocs/auth/auth_event.dart';
 import '../../blocs/auth/auth_state.dart';
 import '../login_screen.dart';
 import 'subject_selection_screen.dart';
+import '../../widgets/learning_activity_card.dart';
+import '../../utils/number_icons.dart';
 
 /// Student dashboard screen
 class StudentDashboard extends StatefulWidget {
@@ -40,6 +42,7 @@ class _StudentDashboardState extends State<StudentDashboard> {
           slivers: [
             _buildAppBar(isSmallScreen),
             SliverToBoxAdapter(child: _buildWelcomeSection(isSmallScreen)),
+            SliverToBoxAdapter(child: _buildActivitiesSection(isSmallScreen)),
             SliverPadding(
               padding: EdgeInsets.all(isSmallScreen ? 12 : 16),
               sliver: _buildClassGrid(isSmallScreen),
@@ -247,6 +250,101 @@ class _StudentDashboardState extends State<StudentDashboard> {
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildActivitiesSection(bool isSmallScreen) {
+    final activities = [
+      {
+        'title': 'Numbers',
+        'icon': Icons.format_list_numbered,
+        'color': Colors.blue,
+        'items': List.generate(10, (index) => {'text': '${index + 1}'}),
+      },
+      {
+        'title': 'Alphabets',
+        'icon': Icons.abc,
+        'color': Colors.green,
+        'items': List.generate(
+          26,
+          (index) => {'text': String.fromCharCode(65 + index)},
+        ),
+      },
+      {
+        'title': 'Shapes',
+        'icon': Icons.category,
+        'color': Colors.orange,
+        'items': [
+          {'text': 'Circle', 'icon': Icons.circle_outlined},
+          {'text': 'Square', 'icon': Icons.square_outlined},
+          {'text': 'Triangle', 'icon': Icons.change_history_outlined},
+          {'text': 'Rectangle', 'icon': Icons.rectangle_outlined},
+          {'text': 'Diamond', 'icon': Icons.diamond_outlined},
+          {'text': 'Star', 'icon': Icons.star_outline},
+          {'text': 'Pentagon', 'icon': Icons.pentagon_outlined},
+          {'text': 'Oval', 'icon': Icons.panorama_fish_eye},
+        ],
+      },
+      {
+        'title': 'Animals',
+        'icon': Icons.pets,
+        'color': Colors.purple,
+        'items': [
+          {'text': 'Lion', 'emoji': '🦁'},
+          {'text': 'Tiger', 'emoji': '🐯'},
+          {'text': 'Elephant', 'emoji': '🐘'},
+          {'text': 'Giraffe', 'emoji': '🦒'},
+          {'text': 'Monkey', 'emoji': '🐒'},
+          {'text': 'Zebra', 'emoji': '🦓'},
+          {'text': 'Panda', 'emoji': '🐼'},
+          {'text': 'Penguin', 'emoji': '🐧'},
+          {'text': 'Koala', 'emoji': '🐨'},
+          {'text': 'Kangaroo', 'emoji': '🦘'},
+          {'text': 'Horse', 'emoji': '🐎'},
+          {'text': 'Dog', 'emoji': '🐕'},
+          {'text': 'Cat', 'emoji': '🐈'},
+          {'text': 'Rabbit', 'emoji': '🐇'},
+          {'text': 'Bear', 'emoji': '🐻'},
+        ],
+      },
+    ];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: EdgeInsets.symmetric(horizontal: isSmallScreen ? 12 : 16),
+          child: Text(
+            'Learning Activities',
+            style: AppTheme.titleLarge.copyWith(
+              color: Colors.black,
+              fontWeight: FontWeight.bold,
+              fontSize: isSmallScreen ? 20 : 24,
+            ),
+          ),
+        ),
+        const SizedBox(height: 16),
+        SizedBox(
+          height: isSmallScreen ? 160 : 200,
+          child: ListView.builder(
+            padding: EdgeInsets.symmetric(horizontal: isSmallScreen ? 12 : 16),
+            scrollDirection: Axis.horizontal,
+            itemCount: activities.length,
+            itemBuilder: (context, index) {
+              final activity = activities[index];
+              return LearningActivityCard(
+                title: activity['title'] as String,
+                icon: activity['icon'] as IconData,
+                color: activity['color'] as Color,
+                items: List<Map<String, dynamic>>.from(
+                  activity['items'] as List,
+                ),
+                isSmallScreen: isSmallScreen,
+              );
+            },
+          ),
+        ),
+      ],
     );
   }
 }

@@ -7,7 +7,6 @@ import 'dart:io';
 import '../../../core/constants/app_constants.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/utils/file_utils.dart';
-import '../../../core/utils/thumbnail_utils.dart';
 import '../../blocs/file/file_bloc.dart';
 import '../../blocs/file/file_event.dart';
 import '../../blocs/file/file_state.dart';
