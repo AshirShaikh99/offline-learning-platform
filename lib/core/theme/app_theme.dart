@@ -3,10 +3,18 @@ import 'package:flutter/material.dart';
 /// Application theme configuration
 class AppTheme {
   // Colors
-  static Color get primaryColor => const Color(0xFF1A73E8);
-  static Color get secondaryColor => const Color(0xFF34A853);
-  static Color get errorColor => const Color(0xFFDC3545);
-  static Color get surfaceColor => const Color(0xFFF8F9FA);
+  static Color get primaryColor => const Color(0xFF1A73E8); // Blue
+  static Color get secondaryColor => const Color(0xFF34A853); // Green
+  static Color get errorColor => const Color(0xFFDC3545); // Red
+  static Color get surfaceColor => const Color(0xFFF8F9FA); // Light gray
+  static Color get textOnDarkColor =>
+      const Color(0xFFF5F5F5); // Almost white for text on dark backgrounds
+  static Color get textOnLightColor =>
+      const Color(0xFF212121); // Almost black for text on light backgrounds
+  static Color get purpleColor => const Color(0xFF673AB7); // Purple
+  static Color get orangeColor => const Color(0xFFFF9800); // Orange
+  static Color get tealColor => const Color(0xFF009688); // Teal
+  static Color get blueColor => const Color(0xFF2196F3); // Blue
 
   // Text Styles
   static TextStyle get headlineLarge => const TextStyle(
@@ -14,6 +22,7 @@ class AppTheme {
     fontWeight: FontWeight.bold,
     fontFamily: 'Poppins',
     letterSpacing: -0.5,
+    color: Color(0xFF212121), // Almost black for light theme
   );
 
   static TextStyle get headlineMedium => const TextStyle(
@@ -21,30 +30,35 @@ class AppTheme {
     fontWeight: FontWeight.bold,
     fontFamily: 'Poppins',
     letterSpacing: -0.5,
+    color: Color(0xFF212121), // Almost black for light theme
   );
 
   static TextStyle get titleLarge => const TextStyle(
     fontSize: 20,
     fontWeight: FontWeight.w600,
     fontFamily: 'Poppins',
+    color: Color(0xFF212121), // Almost black for light theme
   );
 
   static TextStyle get bodyLarge => const TextStyle(
     fontSize: 16,
     fontWeight: FontWeight.normal,
     fontFamily: 'Poppins',
+    color: Color(0xFF212121), // Almost black for light theme
   );
 
   static TextStyle get bodyMedium => const TextStyle(
     fontSize: 14,
     fontWeight: FontWeight.normal,
     fontFamily: 'Poppins',
+    color: Color(0xFF212121), // Almost black for light theme
   );
 
   static TextStyle get labelLarge => const TextStyle(
     fontSize: 16,
     fontWeight: FontWeight.w600,
     fontFamily: 'Poppins',
+    color: Color(0xFF212121), // Almost black for light theme
   );
 
   // Light Theme

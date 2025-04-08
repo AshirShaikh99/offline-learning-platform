@@ -6,10 +6,8 @@ import '../../../domain/entities/user.dart';
 import '../../blocs/auth/auth_bloc.dart';
 import '../../blocs/auth/auth_event.dart';
 import '../../blocs/auth/auth_state.dart';
-import '../login_screen.dart';
 import 'content_viewer_screen.dart';
 import '../../widgets/learning_activity_card.dart';
-import '../../utils/number_icons.dart';
 
 /// Student dashboard screen
 class StudentDashboard extends StatefulWidget {
@@ -48,8 +46,13 @@ class _StudentDashboardState extends State<StudentDashboard> {
                 SliverToBoxAdapter(
                   child: _buildWelcomeSection(isSmallScreen, state.user),
                 ),
-                SliverToBoxAdapter(
-                  child: _buildActivitiesSection(isSmallScreen),
+                // Use SliverMainAxisGroup for better performance
+                SliverMainAxisGroup(
+                  slivers: [
+                    SliverToBoxAdapter(
+                      child: _buildActivitiesSection(isSmallScreen),
+                    ),
+                  ],
                 ),
                 SliverPadding(
                   padding: EdgeInsets.all(isSmallScreen ? 12 : 16),
@@ -182,14 +185,14 @@ class _StudentDashboardState extends State<StudentDashboard> {
               child: Container(
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
-                    colors: [color, color.withOpacity(0.8)],
+                    colors: [color, color.withAlpha((0.8 * 255).toInt())],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
                   borderRadius: BorderRadius.circular(isSmallScreen ? 16 : 20),
                   boxShadow: [
                     BoxShadow(
-                      color: color.withOpacity(0.2),
+                      color: color.withAlpha((0.2 * 255).toInt()),
                       blurRadius: isSmallScreen ? 6 : 8,
                       offset: const Offset(0, 4),
                     ),
@@ -203,7 +206,7 @@ class _StudentDashboardState extends State<StudentDashboard> {
                       child: Icon(
                         icon,
                         size: isSmallScreen ? 80 : 100,
-                        color: Colors.white.withOpacity(0.2),
+                        color: Colors.white.withAlpha(51), // 0.2 * 255 = 51
                       ),
                     ),
                     Padding(
@@ -232,7 +235,9 @@ class _StudentDashboardState extends State<StudentDashboard> {
                               vertical: isSmallScreen ? 4 : 6,
                             ),
                             decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.2),
+                              color: Colors.white.withAlpha(
+                                51,
+                              ), // 0.2 * 255 = 51
                               borderRadius: BorderRadius.circular(30),
                             ),
                             child: Text(
@@ -262,17 +267,87 @@ class _StudentDashboardState extends State<StudentDashboard> {
       {
         'title': 'Numbers',
         'icon': Icons.format_list_numbered,
-        'color': Colors.blue,
+        'color': AppTheme.primaryColor,
         'items': List.generate(10, (index) => {'text': '${index + 1}'}),
       },
       {
         'title': 'Alphabets',
         'icon': Icons.abc,
-        'color': Colors.green,
+        'color': AppTheme.secondaryColor,
         'items': List.generate(
           26,
           (index) => {'text': String.fromCharCode(65 + index)},
         ),
+      },
+      // Interactive Reading Activities
+      {
+        'title': 'Reading',
+        'icon': Icons.auto_stories,
+        'color': AppTheme.tealColor,
+        'items': [
+          {
+            'reading': true,
+            'title': 'Interactive Reading',
+            'pages': [
+              {
+                'title': 'Welcome to Reading',
+                'content':
+                    'Tap on this card to explore interactive stories and improve your reading skills. You can read stories, learn facts, and answer questions.',
+                'question': {
+                  'text': 'What can you do with reading activities?',
+                  'options': [
+                    'Only look at pictures',
+                    'Read stories and answer questions',
+                    'Play music',
+                    'Draw pictures',
+                  ],
+                  'correctAnswer': 1,
+                  'selectedAnswer': null,
+                  'explanation':
+                      'You can read stories and answer questions to improve your reading skills.',
+                  'hint': 'Think about what you do when reading a book.',
+                },
+              },
+            ],
+          },
+        ],
+      },
+      // Word Formation Activity
+      {
+        'title': 'Word Formation',
+        'icon': Icons.text_fields,
+        'color': AppTheme.purpleColor,
+        'items': [
+          {
+            'wordFormation': true,
+            'title': 'Word Formation',
+            'challenges': [
+              {
+                'word': 'WORD',
+                'hint':
+                    'A single unit of language that has meaning and can be spoken or written',
+              },
+            ],
+          },
+        ],
+      },
+      // Matching Game Activity
+      {
+        'title': 'Matching Games',
+        'icon': Icons.connect_without_contact,
+        'color': Colors.teal,
+        'items': [
+          {'matching': true, 'title': 'Matching Games'},
+        ],
+      },
+      // Story Time Activity
+      {
+        'title': 'Story Time',
+        'icon': Icons.auto_stories,
+        'color': Colors.indigo,
+        'items': [
+          {'storyTime': true, 'title': 'Interactive Stories'},
+        ],
       },
       // Add new spelling activity
       {

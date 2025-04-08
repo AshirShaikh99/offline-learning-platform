@@ -1,0 +1,61 @@
+# Animal Matching Game
+
+An interactive "Match the Animal with Its Name" activity for a nursery-level Flutter app. The activity displays a column of animal images on the left and a column of corresponding animal names (as text) on the right. Users (young children) can draw a line from each image to the correct name using touch gestures.
+
+## Features
+
+- Colorful, child-friendly UI with large tappable elements
+- Displays common animals (cat, dog, elephant, lion, cow, etc.)
+- Drag-and-connect functionality where a child can drag from an image to a word
+- Correct matches are animated with a green line and play a cheerful sound
+- Incorrect matches display a gentle red line with a soft error sound
+- Shows a "Well Done!" screen with stars when all matches are correct
+- Follows clean architecture with separation between UI, logic, and state management using BLoC
+- Reusable logic so new matching sets (fruits, colors, shapes) can be easily added
+- Works smoothly on tablets and phones in landscape and portrait modes
+
+## Getting Started
+
+1. Clone this repository
+2. Add the required assets:
+   - Create the following folders:
+     - `assets/images/animals/`
+     - `assets/images/fruits/`
+     - `assets/images/colors/`
+     - `assets/sounds/`
+   - Add animal images to `assets/images/animals/` (see pubspec.yaml for required files)
+   - Add sound files to `assets/sounds/` (correct.mp3, incorrect.mp3, success.mp3)
+3. Run `flutter pub get` to install dependencies
+4. Run the app with `flutter run -t lib/animal_matching_main.dart`
+
+## Project Structure
+
+The project follows a clean architecture approach with the following layers:
+
+- **Domain**: Contains the business logic and entities
+  - `entities/`: Data models for the game
+- **Data**: Contains the data sources and repositories
+  - `animal_matching_data.dart`: Provides data for the matching games
+- **Presentation**: Contains the UI and state management
+  - `blocs/`: BLoC classes for state management
+  - `screens/`: UI screens
+  - `widgets/`: Reusable UI components
+
+## Adding New Matching Sets
+
+To add a new matching set:
+
+1. Add the required images to the appropriate assets folder
+2. Create a new method in `AnimalMatchingData` class to provide the data
+3. Add a new card in the `HomeScreen` to navigate to the new matching game
+
+## Dependencies
+
+- flutter_bloc: For state management
+- equatable: For comparing objects
+- google_fonts: For custom fonts
+- just_audio: For playing sounds
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.

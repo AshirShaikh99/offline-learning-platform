@@ -1,0 +1,9 @@
+This is a placeholder file. Replace with actual animal images:
+- cat.png
+- dog.png
+- elephant.png
+- lion.png
+- monkey.png
+- giraffe.png
+- zebra.png
+- cow.png

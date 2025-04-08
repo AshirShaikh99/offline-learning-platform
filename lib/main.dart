@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:uuid/uuid.dart';
 
 import 'core/theme/app_theme.dart';
@@ -19,7 +18,38 @@ import 'presentation/blocs/course/course_bloc.dart';
 import 'presentation/blocs/file/file_bloc.dart';
 import 'presentation/screens/login_screen.dart';
 
-void main() async {
+void main() {
+  // Show a loading indicator immediately
+  runApp(const LoadingApp());
+
+  // Initialize the app in the background
+  initializeApp();
+}
+
+class LoadingApp extends StatelessWidget {
+  const LoadingApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: Scaffold(
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const CircularProgressIndicator(),
+              const SizedBox(height: 16),
+              Text('Loading...', style: TextStyle(fontSize: 16)),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+Future<void> initializeApp() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   // Initialize Hive
@@ -58,6 +88,7 @@ void main() async {
     localDataSource: courseLocalDataSource,
   );
 
+  // Launch the actual app
   runApp(
     MyApp(
       userRepository: userRepository,

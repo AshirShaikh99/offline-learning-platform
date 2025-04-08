@@ -1,0 +1,7 @@
+This is a placeholder file. Replace with actual fruit images:
+- apple.png
+- banana.png
+- orange.png
+- strawberry.png
+- watermelon.png
+- grapes.png

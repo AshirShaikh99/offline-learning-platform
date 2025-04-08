@@ -1,0 +1,7 @@
+This is a placeholder file. Replace with actual color images:
+- red.png
+- blue.png
+- green.png
+- yellow.png
+- purple.png
+- orange.png
