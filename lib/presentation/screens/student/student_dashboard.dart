@@ -6,6 +6,7 @@ import '../../../domain/entities/user.dart';
 import '../../blocs/auth/auth_bloc.dart';
 import '../../blocs/auth/auth_event.dart';
 import '../../blocs/auth/auth_state.dart';
+import '../login_screen.dart';
 import 'content_viewer_screen.dart';
 import 'learn_urdu_screen.dart';
 import '../../widgets/learning_activity_card.dart';
@@ -35,35 +36,46 @@ class _StudentDashboardState extends State<StudentDashboard> {
     final screenSize = MediaQuery.of(context).size;
     final isSmallScreen = screenSize.width < 600;
 
-    return BlocBuilder<AuthBloc, AuthState>(
-      builder: (context, state) {
-        if (state is Authenticated) {
-          return Scaffold(
-            backgroundColor: const Color(0xFFF8EAC8),
-            body: CustomScrollView(
-              slivers: [
-                _buildAppBar(isSmallScreen),
-                SliverToBoxAdapter(
-                  child: _buildWelcomeSection(isSmallScreen, state.user),
-                ),
-                // Use SliverMainAxisGroup for better performance
-                SliverMainAxisGroup(
-                  slivers: [
-                    SliverToBoxAdapter(
-                      child: _buildActivitiesSection(isSmallScreen),
-                    ),
-                  ],
-                ),
-                SliverPadding(
-                  padding: EdgeInsets.all(isSmallScreen ? 12 : 16),
-                  sliver: _buildSubjectGrid(isSmallScreen),
-                ),
-              ],
-            ),
+    return BlocListener<AuthBloc, AuthState>(
+      listenWhen: (previous, current) => current is Unauthenticated,
+      listener: (context, state) {
+        if (state is Unauthenticated) {
+          Navigator.of(context).pushAndRemoveUntil(
+            MaterialPageRoute(builder: (context) => const LoginScreen()),
+            (route) => false,
           );
         }
-        return const Center(child: CircularProgressIndicator());
       },
+      child: BlocBuilder<AuthBloc, AuthState>(
+        builder: (context, state) {
+          if (state is Authenticated) {
+            return Scaffold(
+              backgroundColor: const Color(0xFFF8EAC8),
+              body: CustomScrollView(
+                slivers: [
+                  _buildAppBar(isSmallScreen),
+                  SliverToBoxAdapter(
+                    child: _buildWelcomeSection(isSmallScreen, state.user),
+                  ),
+                  // Use SliverMainAxisGroup for better performance
+                  SliverMainAxisGroup(
+                    slivers: [
+                      SliverToBoxAdapter(
+                        child: _buildActivitiesSection(isSmallScreen),
+                      ),
+                    ],
+                  ),
+                  SliverPadding(
+                    padding: EdgeInsets.all(isSmallScreen ? 12 : 16),
+                    sliver: _buildSubjectGrid(isSmallScreen),
+                  ),
+                ],
+              ),
+            );
+          }
+          return const Center(child: CircularProgressIndicator());
+        },
+      ),
     );
   }
 

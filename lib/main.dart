@@ -136,7 +136,7 @@ class MyApp extends StatelessWidget {
         title: 'Edutech',
         theme: _buildLightTheme(),
         darkTheme: _buildDarkTheme(),
-        themeMode: ThemeMode.system,
+        themeMode: ThemeMode.dark,
         home: const Scaffold(
           body: Center(
             child: Column(
@@ -172,7 +172,7 @@ class MyApp extends StatelessWidget {
         title: 'Edutech',
         theme: _buildLightTheme(),
         darkTheme: _buildDarkTheme(),
-        themeMode: ThemeMode.system,
+        themeMode: ThemeMode.dark,
         home: const AppLifecycleManager(child: LoginScreen()),
       ),
     );
@@ -263,77 +263,116 @@ class MyApp extends StatelessWidget {
       colorScheme: ColorScheme.fromSeed(
         seedColor: AppTheme.primaryColor,
         brightness: Brightness.dark,
+        background: const Color(0xFF121212),
+        surface: const Color(0xFF1E1E1E),
+        primary: const Color(0xFF6B8AFD), // Softer blue
+        secondary: const Color(0xFFE8A87C), // Warm orange-ish color
+        tertiary: const Color(0xFFB6CFB6), // Soft green
+        error: const Color(0xFFE57373), // Softer red
       ),
+      scaffoldBackgroundColor: const Color(0xFF121212),
       // Typography
       textTheme: TextTheme(
-        displayLarge: AppTheme.headlineLarge,
-        displayMedium: AppTheme.headlineMedium,
-        titleLarge: AppTheme.titleLarge,
-        bodyLarge: AppTheme.bodyLarge,
-        bodyMedium: AppTheme.bodyMedium,
-        labelLarge: AppTheme.labelLarge,
+        displayLarge: AppTheme.headlineLarge.copyWith(fontSize: 32),
+        displayMedium: AppTheme.headlineMedium.copyWith(fontSize: 28),
+        titleLarge: AppTheme.titleLarge.copyWith(fontSize: 22),
+        bodyLarge: AppTheme.bodyLarge.copyWith(fontSize: 18),
+        bodyMedium: AppTheme.bodyMedium.copyWith(fontSize: 16),
+        labelLarge: AppTheme.labelLarge.copyWith(fontSize: 16),
       ),
       // Component themes
       appBarTheme: AppBarTheme(
         centerTitle: true,
-        backgroundColor: Colors.transparent,
+        backgroundColor: const Color(0xFF1E1E1E),
         elevation: 0,
         foregroundColor: Colors.white,
-        titleTextStyle: AppTheme.titleLarge.copyWith(color: Colors.white),
+        titleTextStyle: AppTheme.titleLarge.copyWith(
+          color: Colors.white,
+          fontSize: 22,
+        ),
       ),
       cardTheme: CardTheme(
-        elevation: 0,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        elevation: 4,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         color: const Color(0xFF1E1E1E),
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: const Color(0xFF2C2C2C),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(16),
           borderSide: BorderSide.none,
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(16),
           borderSide: BorderSide.none,
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: AppTheme.primaryColor, width: 1.5),
+          borderRadius: BorderRadius.circular(16),
+          borderSide: BorderSide(color: const Color(0xFF6B8AFD), width: 2),
         ),
         contentPadding: const EdgeInsets.symmetric(
-          horizontal: 16,
-          vertical: 16,
+          horizontal: 18,
+          vertical: 18,
         ),
-        hintStyle: TextStyle(color: Colors.grey[400]),
-        labelStyle: TextStyle(color: Colors.grey[400]),
+        hintStyle: TextStyle(color: Colors.grey[400], fontSize: 16),
+        labelStyle: TextStyle(color: Colors.grey[300], fontSize: 16),
         suffixStyle: TextStyle(color: Colors.white),
         prefixStyle: TextStyle(color: Colors.white),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          elevation: 0,
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+          elevation: 2,
+          padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 18),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(16),
           ),
+          backgroundColor: const Color(0xFF6B8AFD),
+          foregroundColor: Colors.white,
         ),
       ),
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+          padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 18),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(16),
           ),
+          backgroundColor: const Color(0xFF6B8AFD),
         ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+          padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 18),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(16),
           ),
+          side: BorderSide(color: const Color(0xFF6B8AFD), width: 2),
         ),
+      ),
+      iconTheme: IconThemeData(color: const Color(0xFF6B8AFD), size: 26),
+      switchTheme: SwitchThemeData(
+        thumbColor: MaterialStateProperty.resolveWith<Color>((states) {
+          if (states.contains(MaterialState.selected)) {
+            return const Color(0xFF6B8AFD);
+          }
+          return Colors.grey;
+        }),
+        trackColor: MaterialStateProperty.resolveWith<Color>((states) {
+          if (states.contains(MaterialState.selected)) {
+            return const Color(0xFF6B8AFD).withOpacity(0.5);
+          }
+          return Colors.grey.withOpacity(0.5);
+        }),
+      ),
+      dividerTheme: DividerThemeData(color: Colors.grey[700], thickness: 0.5),
+      dialogTheme: DialogTheme(
+        backgroundColor: const Color(0xFF1E1E1E),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      ),
+      bottomNavigationBarTheme: BottomNavigationBarThemeData(
+        backgroundColor: const Color(0xFF1E1E1E),
+        selectedItemColor: const Color(0xFF6B8AFD),
+        unselectedItemColor: Colors.grey[500],
       ),
     );
   }
