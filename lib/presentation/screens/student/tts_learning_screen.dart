@@ -333,6 +333,8 @@ class _TtsLearningScreenState extends State<TtsLearningScreen> {
           textToSpeak = "This is a $textToSpeak";
         } else if (widget.title == 'Animals') {
           textToSpeak = "This is a $textToSpeak";
+        } else if (widget.title == 'Fruits') {
+          textToSpeak = "This is a $textToSpeak";
         }
 
         print("Will speak: $textToSpeak");
@@ -424,6 +426,8 @@ class _TtsLearningScreenState extends State<TtsLearningScreen> {
         return Icons.category;
       case 'animals':
         return Icons.pets;
+      case 'fruits':
+        return Icons.apple;
       default:
         return Icons.school;
     }

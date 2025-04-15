@@ -580,6 +580,28 @@ class _StudentDashboardState extends State<StudentDashboard>
           {'text': 'Bear', 'emoji': '🐻'},
         ],
       },
+      {
+        'title': 'Fruits',
+        'icon': Icons.apple,
+        'color': const Color(0xFF4CAF50),
+        'items': [
+          {'text': 'Apple', 'emoji': '🍎'},
+          {'text': 'Banana', 'emoji': '🍌'},
+          {'text': 'Orange', 'emoji': '🍊'},
+          {'text': 'Grapes', 'emoji': '🍇'},
+          {'text': 'Strawberry', 'emoji': '🍓'},
+          {'text': 'Watermelon', 'emoji': '🍉'},
+          {'text': 'Pineapple', 'emoji': '🍍'},
+          {'text': 'Mango', 'emoji': '🥭'},
+          {'text': 'Pear', 'emoji': '🍐'},
+          {'text': 'Peach', 'emoji': '🍑'},
+          {'text': 'Cherry', 'emoji': '🍒'},
+          {'text': 'Lemon', 'emoji': '🍋'},
+          {'text': 'Kiwi', 'emoji': '🥝'},
+          {'text': 'Coconut', 'emoji': '🥥'},
+          {'text': 'Avocado', 'emoji': '🥑'},
+        ],
+      },
     ];
 
     return Column(

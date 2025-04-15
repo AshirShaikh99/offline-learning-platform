@@ -45,7 +45,8 @@ class LearningActivityCard extends StatelessWidget {
                 );
               } else if (title == 'Alphabets' ||
                   title == 'Shapes' ||
-                  title == 'Animals') {
+                  title == 'Animals' ||
+                  title == 'Fruits') {
                 // Navigate to TTS Learning Screen for these types
                 return TtsLearningScreen(
                   title: title,
