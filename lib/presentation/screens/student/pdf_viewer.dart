@@ -20,6 +20,7 @@ class _PdfViewerState extends State<PdfViewer> {
   bool _isLoading = true;
   bool _isError = false;
   String? _errorMessage;
+  PDFViewController? _pdfViewController;
 
   @override
   void initState() {
@@ -27,12 +28,30 @@ class _PdfViewerState extends State<PdfViewer> {
     _checkFile();
   }
 
-  void _checkFile() {
-    final file = File(widget.filePath);
-    if (!file.existsSync()) {
+  void _checkFile() async {
+    try {
+      final file = File(widget.filePath);
+      if (!file.existsSync()) {
+        setState(() {
+          _isError = true;
+          _errorMessage = 'PDF file not found';
+          _isLoading = false;
+        });
+        return;
+      }
+
+      // Check if file is readable and has content
+      if (file.lengthSync() == 0) {
+        setState(() {
+          _isError = true;
+          _errorMessage = 'PDF file is empty';
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
       setState(() {
         _isError = true;
-        _errorMessage = 'PDF file not found';
+        _errorMessage = 'Error checking PDF file: $e';
         _isLoading = false;
       });
     }
@@ -41,6 +60,7 @@ class _PdfViewerState extends State<PdfViewer> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.grey[900],
       appBar: AppBar(
         backgroundColor: Colors.black,
         leading: IconButton(
@@ -59,7 +79,36 @@ class _PdfViewerState extends State<PdfViewer> {
       ),
       body:
           _isError
-              ? Center(child: Text(_errorMessage ?? 'Error loading PDF'))
+              ? Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(
+                      Icons.picture_as_pdf,
+                      color: Color(0xFFFF2D95),
+                      size: 64,
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      _errorMessage ?? 'Error loading PDF',
+                      style: const TextStyle(color: Colors.white, fontSize: 16),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 24),
+                    ElevatedButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFFFF2D95),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 24,
+                          vertical: 12,
+                        ),
+                      ),
+                      child: const Text('Go Back'),
+                    ),
+                  ],
+                ),
+              )
               : Column(
                 children: [
                   Expanded(
@@ -76,42 +125,56 @@ class _PdfViewerState extends State<PdfViewer> {
                           fitPolicy: FitPolicy.BOTH,
                           preventLinkNavigation: false,
                           onRender: (pages) {
-                            setState(() {
-                              _totalPages = pages!;
-                              _isLoading = false;
-                            });
+                            if (mounted) {
+                              setState(() {
+                                _totalPages = pages!;
+                                _isLoading = false;
+                              });
+                            }
                           },
                           onError: (error) {
-                            setState(() {
-                              _isError = true;
-                              _errorMessage = error.toString();
-                              _isLoading = false;
-                            });
+                            if (mounted) {
+                              setState(() {
+                                _isError = true;
+                                _errorMessage = error.toString();
+                                _isLoading = false;
+                              });
+                            }
                           },
                           onPageError: (page, error) {
-                            setState(() {
-                              _isError = true;
-                              _errorMessage =
-                                  'Error loading page $page: $error';
-                              _isLoading = false;
-                            });
+                            if (mounted) {
+                              setState(() {
+                                _isError = true;
+                                _errorMessage =
+                                    'Error loading page $page: $error';
+                                _isLoading = false;
+                              });
+                            }
+                          },
+                          onViewCreated: (PDFViewController controller) {
+                            _pdfViewController = controller;
                           },
                           onPageChanged: (page, total) {
-                            setState(() {
-                              _currentPage = page!;
-                            });
+                            if (mounted) {
+                              setState(() {
+                                _currentPage = page!;
+                              });
+                            }
                           },
                         ),
                         if (_isLoading)
                           const Center(
                             child: CircularProgressIndicator(
-                              color: Colors.black,
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                Color(0xFFFF2D95),
+                              ),
                             ),
                           ),
                       ],
                     ),
                   ),
-                  _buildControlBar(),
+                  if (!_isLoading && !_isError && _totalPages > 0)
+                    _buildControlBar(),
                 ],
               ),
     );
@@ -138,9 +201,9 @@ class _PdfViewerState extends State<PdfViewer> {
             onPressed:
                 _currentPage > 0
                     ? () {
-                      setState(() {
-                        _currentPage--;
-                      });
+                      if (_pdfViewController != null) {
+                        _pdfViewController!.setPage(_currentPage - 1);
+                      }
                     }
                     : null,
           ),
@@ -157,9 +220,9 @@ class _PdfViewerState extends State<PdfViewer> {
             onPressed:
                 _currentPage < _totalPages - 1
                     ? () {
-                      setState(() {
-                        _currentPage++;
-                      });
+                      if (_pdfViewController != null) {
+                        _pdfViewController!.setPage(_currentPage + 1);
+                      }
                     }
                     : null,
           ),
