@@ -7,6 +7,7 @@ import '../screens/student/numbers_activity_screen.dart';
 import '../screens/student/reading_activity_screen.dart';
 import '../screens/student/reading_demo_screen.dart';
 import '../screens/student/story_time_screen.dart';
+import '../screens/student/tts_learning_screen.dart';
 import '../screens/student/word_formation_screen.dart';
 import '../screens/student/word_formation_demo_screen.dart';
 import '../screens/student/learn_urdu_screen.dart';
@@ -38,6 +39,15 @@ class LearningActivityCard extends StatelessWidget {
               if (title == 'Numbers') {
                 // Navigate to Numbers screen with English pronunciation
                 return NumbersActivityScreen(
+                  title: title,
+                  color: color,
+                  items: items,
+                );
+              } else if (title == 'Alphabets' ||
+                  title == 'Shapes' ||
+                  title == 'Animals') {
+                // Navigate to TTS Learning Screen for these types
+                return TtsLearningScreen(
                   title: title,
                   color: color,
                   items: items,
