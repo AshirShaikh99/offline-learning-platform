@@ -51,224 +51,332 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(widget.course.title)),
-      body: Column(
-        children: [_buildCourseInfo(), Expanded(child: _buildCourseContent())],
+      backgroundColor: Colors.black,
+      appBar: AppBar(
+        backgroundColor: Colors.black,
+        elevation: 0,
+        title: Text(
+          widget.course.title,
+          style: const TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+            fontSize: 18,
+          ),
+          overflow: TextOverflow.ellipsis,
+        ),
+        leading: IconButton(
+          icon: Container(
+            decoration: BoxDecoration(
+              color: const Color(0xFFFF2D95).withOpacity(0.15),
+              shape: BoxShape.circle,
+            ),
+            padding: const EdgeInsets.all(4),
+            child: const Icon(
+              Icons.arrow_back,
+              color: Color(0xFFFF2D95),
+              size: 20,
+            ),
+          ),
+          onPressed: () => Navigator.pop(context),
+        ),
+      ),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildHeaderCard(),
+              const SizedBox(height: 24),
+              _buildSectionTitle('Description'),
+              const SizedBox(height: 12),
+              _buildDescriptionCard(),
+              const SizedBox(height: 24),
+              _buildSectionTitle('Content Preview'),
+              const SizedBox(height: 12),
+              _buildContentPreview(),
+              if (widget.course.filePath != null) ...[
+                const SizedBox(height: 32),
+                _buildActionButton(),
+              ],
+              const SizedBox(height: 32),
+            ],
+          ),
+        ),
       ),
     );
   }
 
-  Widget _buildCourseInfo() {
+  Widget _buildHeaderCard() {
     return Container(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          if (widget.course.isVideo && _thumbnailPath != null)
-            Container(
-              height: 200,
-              width: double.infinity,
-              margin: const EdgeInsets.only(bottom: 16),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(12),
-                color: Colors.black.withOpacity(0.1),
-              ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(12),
-                child: Image.file(File(_thumbnailPath!), fit: BoxFit.cover),
-              ),
-            ),
-          Text(
-            widget.course.title,
-            style: Theme.of(context).textTheme.headlineSmall,
+      width: double.infinity,
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [Color(0xFF121212), Color(0xFF1A1A1A)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFFFF2D95).withOpacity(0.1),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
           ),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              Icon(
-                widget.course.isPdf
-                    ? Icons.picture_as_pdf
-                    : Icons.video_library,
-                size: 16,
-                color: Colors.grey,
-              ),
-              const SizedBox(width: 4),
-              Text(
-                widget.course.isPdf ? 'PDF Document' : 'Video Content',
-                style: const TextStyle(fontSize: 12, color: Colors.grey),
-              ),
-              const SizedBox(width: 16),
-              const Icon(Icons.class_, size: 16, color: Colors.grey),
-              const SizedBox(width: 4),
-              Text(
-                widget.course.className,
-                style: const TextStyle(fontSize: 12, color: Colors.grey),
-              ),
-              const SizedBox(width: 16),
-              const Icon(Icons.subject, size: 16, color: Colors.grey),
-              const SizedBox(width: 4),
-              Text(
-                widget.course.subject,
-                style: const TextStyle(fontSize: 12, color: Colors.grey),
-              ),
-            ],
+        ],
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFF2D95).withOpacity(0.15),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Icon(
+                    _getIconForContent(widget.course.fileType),
+                    color: const Color(0xFFFF2D95),
+                    size: 28,
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        widget.course.title,
+                        style: const TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 6,
+                        ),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF00E5FF).withOpacity(0.15),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          widget.course.fileType.toUpperCase(),
+                          style: const TextStyle(
+                            color: Color(0xFF00E5FF),
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Icon(
+                    Icons.class_,
+                    color: Colors.white,
+                    size: 16,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  'Class: ${widget.course.className}',
+                  style: TextStyle(color: Colors.grey[400], fontSize: 14),
+                ),
+                const SizedBox(width: 16),
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Icon(
+                    Icons.subject,
+                    color: Colors.white,
+                    size: 16,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  'Subject: ${widget.course.subject}',
+                  style: TextStyle(color: Colors.grey[400], fontSize: 14),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSectionTitle(String title) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 4),
+      child: Row(
+        children: [
+          Container(
+            width: 4,
+            height: 20,
+            decoration: BoxDecoration(
+              color: const Color(0xFFFF2D95),
+              borderRadius: BorderRadius.circular(4),
+            ),
+          ),
+          const SizedBox(width: 8),
+          Text(
+            title,
+            style: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildCourseContent() {
-    return BlocConsumer<FileBloc, FileState>(
-      listener: (context, state) {
-        if (state is FileDownloaded && state.fileId == widget.course.id) {
-          if (widget.course.isVideo) {
-            _initializeVideo(state.filePath);
-          }
-        }
-      },
-      builder: (context, state) {
-        // Handle different file states
-        if (state is FileChecking && state.fileId == widget.course.id) {
-          return const Center(child: CircularProgressIndicator());
-        } else if (state is FileDownloading &&
-            state.fileId == widget.course.id) {
-          return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const CircularProgressIndicator(),
-                const SizedBox(height: 16),
-                const Text('Downloading file...'),
-              ],
-            ),
-          );
-        } else if (state is FileError && state.fileId == widget.course.id) {
-          return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Icon(Icons.error_outline, color: Colors.red, size: 48),
-                const SizedBox(height: 16),
-                Text('Error: ${state.message}'),
-                const SizedBox(height: 16),
-                ElevatedButton(
-                  onPressed: () {
-                    context.read<FileBloc>().add(
-                      DownloadFileEvent(
-                        fileId: widget.course.id,
-                        fileUrl: widget.course.filePath,
-                        fileType: widget.course.fileType,
-                      ),
-                    );
-                  },
-                  child: const Text('Try Again'),
-                ),
-              ],
-            ),
-          );
-        } else if (state is FileNotDownloaded &&
-            state.fileId == widget.course.id) {
-          return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Icon(Icons.cloud_download, size: 48),
-                const SizedBox(height: 16),
-                const Text('File not downloaded'),
-                const SizedBox(height: 16),
-                ElevatedButton(
-                  onPressed: () {
-                    context.read<FileBloc>().add(
-                      DownloadFileEvent(
-                        fileId: widget.course.id,
-                        fileUrl: widget.course.filePath,
-                        fileType: widget.course.fileType,
-                      ),
-                    );
-                  },
-                  child: const Text('Download'),
-                ),
-              ],
-            ),
-          );
-        } else if (state is FileDownloaded &&
-            state.fileId == widget.course.id) {
-          if (widget.course.isPdf) {
-            return _buildPdfViewer(state.filePath);
-          } else if (widget.course.isVideo) {
-            return _buildVideoPlayer();
-          }
-        }
-
-        // Default case or unknown file type
-        return const Center(child: Text('Unsupported file type'));
-      },
+  Widget _buildDescriptionCard() {
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: const Color(0xFF121212),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      padding: const EdgeInsets.all(16),
+      child: Text(
+        widget.course.description ?? 'No description available.',
+        style: TextStyle(color: Colors.grey[300], fontSize: 15, height: 1.5),
+      ),
     );
   }
 
-  Widget _buildPdfViewer(String filePath) {
-    final file = File(filePath);
-    if (!file.existsSync()) {
-      return const Center(child: Text('PDF file not found'));
-    }
-
-    return Column(
-      children: [
-        Expanded(
-          child: PDFView(
-            filePath: filePath,
-            enableSwipe: true,
-            swipeHorizontal: true,
-            autoSpacing: false,
-            pageFling: false,
-            onRender: (pages) {
-              setState(() {
-                _pdfTotalPages = pages!;
-              });
-            },
-            onPageChanged: (page, total) {
-              setState(() {
-                _pdfCurrentPage = page!;
-              });
-            },
-          ),
+  Widget _buildContentPreview() {
+    // For now, just a placeholder
+    return Container(
+      width: double.infinity,
+      height: 200,
+      decoration: BoxDecoration(
+        color: const Color(0xFF121212),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.white.withOpacity(0.1), width: 1),
+      ),
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              _getIconForContent(widget.course.fileType),
+              color: const Color(0xFFFF2D95),
+              size: 48,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Preview not available',
+              style: TextStyle(color: Colors.grey[400], fontSize: 14),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              'Click the button below to view content',
+              style: TextStyle(color: Colors.grey[600], fontSize: 12),
+            ),
+          ],
         ),
-        Container(
-          padding: const EdgeInsets.all(8),
-          color: Colors.grey[200],
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                'Page ${_pdfCurrentPage + 1} of $_pdfTotalPages',
-                style: const TextStyle(fontSize: 12),
-              ),
-            ],
+      ),
+    );
+  }
+
+  Widget _buildActionButton() {
+    return SizedBox(
+      width: double.infinity,
+      child: ElevatedButton(
+        onPressed: _openContent,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: const Color(0xFFFF2D95),
+          foregroundColor: Colors.white,
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
           ),
+          elevation: 4,
         ),
-      ],
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(_getIconForAction(widget.course.fileType), size: 20),
+            const SizedBox(width: 8),
+            Text(
+              _getActionText(widget.course.fileType),
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
-  Future<void> _initializeVideo(String filePath) async {
-    _videoPlayerController = VideoPlayerController.file(File(filePath));
-    await _videoPlayerController!.initialize();
-
-    _chewieController = ChewieController(
-      videoPlayerController: _videoPlayerController!,
-      autoPlay: false,
-      looping: false,
-      aspectRatio: _videoPlayerController!.value.aspectRatio,
-      placeholder: Center(child: CircularProgressIndicator()),
-    );
-    setState(() {});
-  }
-
-  Widget _buildVideoPlayer() {
-    if (_chewieController == null) {
-      return Center(child: CircularProgressIndicator());
+  IconData _getIconForContent(String type) {
+    switch (type) {
+      case 'pdf':
+        return Icons.picture_as_pdf;
+      case 'video':
+        return Icons.play_circle_fill;
+      case 'html':
+        return Icons.web;
+      default:
+        return Icons.insert_drive_file;
     }
-    return Chewie(controller: _chewieController!);
+  }
+
+  IconData _getIconForAction(String type) {
+    switch (type) {
+      case 'pdf':
+        return Icons.picture_as_pdf;
+      case 'video':
+        return Icons.play_arrow_rounded;
+      case 'html':
+        return Icons.web_asset;
+      default:
+        return Icons.open_in_new;
+    }
+  }
+
+  String _getActionText(String type) {
+    switch (type) {
+      case 'pdf':
+        return 'Open PDF Document';
+      case 'video':
+        return 'Watch Video';
+      case 'html':
+        return 'Open Interactive Content';
+      default:
+        return 'View Content';
+    }
+  }
+
+  void _openContent() {
+    // Implement the logic to open the content based on the course type
+    // This is a placeholder and should be replaced with the actual implementation
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text('Opening content...')));
   }
 }

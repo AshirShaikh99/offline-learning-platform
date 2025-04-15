@@ -30,233 +30,218 @@ class _SubjectSelectionScreenState extends State<SubjectSelectionScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final screenSize = MediaQuery.of(context).size;
-    final isSmallScreen = screenSize.width < 600;
-    final isMediumScreen = screenSize.width >= 600 && screenSize.width < 1200;
-    final isLargeScreen = screenSize.width >= 1200;
-
     return Scaffold(
-      backgroundColor: const Color(0xFFF8EAC8),
-      body: CustomScrollView(
-        slivers: [
-          _buildAppBar(context, screenSize),
-          SliverPadding(
-            padding: EdgeInsets.symmetric(
-              horizontal: _getHorizontalPadding(screenSize),
-              vertical: 16,
-            ),
-            sliver: _buildSubjectGrid(context, screenSize),
-          ),
-        ],
-      ),
-    );
-  }
-
-  double _getHorizontalPadding(Size screenSize) {
-    if (screenSize.width >= 1200) return screenSize.width * 0.15;
-    if (screenSize.width >= 600) return screenSize.width * 0.1;
-    return 16.0;
-  }
-
-  Widget _buildAppBar(BuildContext context, Size screenSize) {
-    final isSmallScreen = screenSize.width < 600;
-    final expandedHeight = _getExpandedHeight(screenSize);
-
-    return SliverAppBar(
-      expandedHeight: expandedHeight,
-      floating: false,
-      pinned: true,
       backgroundColor: Colors.black,
-      leading: IconButton(
-        icon: const Icon(Icons.arrow_back, color: Colors.white),
-        onPressed: () => Navigator.pop(context),
-      ),
-      flexibleSpace: FlexibleSpaceBar(
-        title: Text(
-          widget.className,
+      appBar: AppBar(
+        backgroundColor: Colors.black,
+        elevation: 0,
+        title: const Text(
+          'Select Subject',
           style: TextStyle(
             color: Colors.white,
-            fontSize: _getTitleFontSize(screenSize),
             fontWeight: FontWeight.bold,
+            fontSize: 18,
           ),
         ),
-        background: Container(
-          color: Colors.black,
-          child: Stack(
-            children: [
-              Positioned(
-                right: -50,
-                top: -50,
-                child: CircleAvatar(
-                  radius: isSmallScreen ? 100 : 150,
-                  backgroundColor: Colors.white.withOpacity(0.1),
-                ),
-              ),
-              Positioned(
-                left: -30,
-                bottom: -30,
-                child: CircleAvatar(
-                  radius: isSmallScreen ? 80 : 120,
-                  backgroundColor: Colors.white.withOpacity(0.1),
-                ),
-              ),
-            ],
+        leading: IconButton(
+          icon: Container(
+            decoration: BoxDecoration(
+              color: const Color(0xFFFF2D95).withOpacity(0.15),
+              shape: BoxShape.circle,
+            ),
+            padding: const EdgeInsets.all(4),
+            child: const Icon(
+              Icons.arrow_back,
+              color: Color(0xFFFF2D95),
+              size: 20,
+            ),
           ),
+          onPressed: () => Navigator.pop(context),
         ),
       ),
-    );
-  }
-
-  double _getExpandedHeight(Size screenSize) {
-    if (screenSize.width >= 1200) return 200;
-    if (screenSize.width >= 600) return 180;
-    return 150;
-  }
-
-  double _getTitleFontSize(Size screenSize) {
-    if (screenSize.width >= 1200) return 32;
-    if (screenSize.width >= 600) return 28;
-    return 24;
-  }
-
-  Widget _buildSubjectGrid(BuildContext context, Size screenSize) {
-    return SliverGrid(
-      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: _getCrossAxisCount(screenSize),
-        childAspectRatio: _getChildAspectRatio(screenSize),
-        crossAxisSpacing: _getSpacing(screenSize),
-        mainAxisSpacing: _getSpacing(screenSize),
-      ),
-      delegate: SliverChildBuilderDelegate((context, index) {
-        final subject = _subjects[index];
-        return _buildSubjectCard(context, subject, screenSize);
-      }, childCount: _subjects.length),
-    );
-  }
-
-  int _getCrossAxisCount(Size screenSize) {
-    if (screenSize.width >= 1200) return 4;
-    if (screenSize.width >= 800) return 3;
-    if (screenSize.width >= 600) return 2;
-    return 2;
-  }
-
-  double _getChildAspectRatio(Size screenSize) {
-    if (screenSize.width >= 1200) return 1.2;
-    if (screenSize.width >= 800) return 1.1;
-    if (screenSize.width >= 600) return 1.0;
-    return 0.95;
-  }
-
-  double _getSpacing(Size screenSize) {
-    if (screenSize.width >= 1200) return 24.0;
-    if (screenSize.width >= 800) return 20.0;
-    if (screenSize.width >= 600) return 16.0;
-    return 12.0;
-  }
-
-  Widget _buildSubjectCard(
-    BuildContext context,
-    Map<String, dynamic> subject,
-    Size screenSize,
-  ) {
-    final isSmallScreen = screenSize.width < 600;
-    final cardPadding = isSmallScreen ? 16.0 : 24.0;
-    final iconSize = isSmallScreen ? 32.0 : 40.0;
-    final titleSize = isSmallScreen ? 16.0 : 20.0;
-    final buttonTextSize = isSmallScreen ? 12.0 : 14.0;
-
-    return Card(
-      elevation: 0,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(isSmallScreen ? 16 : 20),
-      ),
-      child: InkWell(
-        onTap:
-            () => Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder:
-                    (context) => ContentViewerScreen(
-                      className: widget.className,
-                      subject: subject['name'],
+      body: SafeArea(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
+              child: Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFF121212), Color(0xFF1A1A1A)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(24),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFFFF2D95).withOpacity(0.1),
+                      blurRadius: 8,
+                      offset: const Offset(0, 4),
                     ),
+                  ],
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFF2D95).withOpacity(0.15),
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: const Icon(
+                        Icons.school,
+                        color: Color(0xFFFF2D95),
+                        size: 24,
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Select a Subject',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Tap a subject to view available content',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Colors.grey[400],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
-        borderRadius: BorderRadius.circular(isSmallScreen ? 16 : 20),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: GridView.count(
+                  crossAxisCount: _getColumnCount(context),
+                  childAspectRatio: 1.0,
+                  mainAxisSpacing: 16,
+                  crossAxisSpacing: 16,
+                  children:
+                      _subjects.map((subject) {
+                        return _buildSubjectCard(subject);
+                      }).toList(),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSubjectCard(Map<String, dynamic> subject) {
+    return Card(
+      elevation: 8,
+      color: Colors.transparent,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+      child: InkWell(
+        onTap: () => _navigateToContentViewer(subject['name']),
+        borderRadius: BorderRadius.circular(24),
         child: Container(
           decoration: BoxDecoration(
             gradient: LinearGradient(
-              colors: [subject['color'], subject['color'].withOpacity(0.8)],
+              colors: [
+                (subject['color'] as Color).withOpacity(0.8),
+                (subject['color'] as Color).withOpacity(0.5),
+              ],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
-            borderRadius: BorderRadius.circular(isSmallScreen ? 16 : 20),
+            borderRadius: BorderRadius.circular(24),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.1),
-                blurRadius: isSmallScreen ? 6 : 10,
-                offset: const Offset(0, 3),
+                color: (subject['color'] as Color).withOpacity(0.3),
+                blurRadius: 10,
+                spreadRadius: 0,
+                offset: const Offset(0, 4),
               ),
             ],
           ),
           child: Stack(
             children: [
-              // Background Icon
               Positioned(
-                right: -20,
-                bottom: -20,
+                right: -30,
+                bottom: -30,
                 child: Icon(
-                  subject['icon'],
-                  size: iconSize * 2.5,
-                  color: Colors.white.withOpacity(0.2),
+                  subject['icon'] as IconData,
+                  size: 100,
+                  color: Colors.white.withOpacity(0.1),
                 ),
               ),
-              // Content
               Padding(
-                padding: EdgeInsets.all(cardPadding),
+                padding: const EdgeInsets.all(16),
                 child: Column(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    // Top Icon
-                    Icon(subject['icon'], color: Colors.white, size: iconSize),
-                    // Spacer
-                    const Spacer(),
-                    // Subject Name and Button
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.2),
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: Icon(
+                        subject['icon'] as IconData,
+                        color: Colors.white,
+                        size: 20,
+                      ),
+                    ),
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
                       children: [
-                        // Subject Name
                         Text(
-                          subject['name'],
-                          style: AppTheme.titleLarge.copyWith(
+                          subject['name'] as String,
+                          style: const TextStyle(
                             color: Colors.white,
-                            fontSize: titleSize,
-                            fontWeight: FontWeight.w600,
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
                           ),
-                          maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                         ),
-                        SizedBox(height: isSmallScreen ? 8 : 12),
-                        // View Content Button
+                        const SizedBox(height: 6),
                         Container(
-                          padding: EdgeInsets.symmetric(
-                            horizontal: isSmallScreen ? 12 : 16,
-                            vertical: isSmallScreen ? 6 : 8,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 4,
                           ),
                           decoration: BoxDecoration(
                             color: Colors.white.withOpacity(0.2),
-                            borderRadius: BorderRadius.circular(20),
+                            borderRadius: BorderRadius.circular(12),
                           ),
-                          child: Text(
-                            'View Content',
-                            style: AppTheme.bodyMedium.copyWith(
-                              color: Colors.white,
-                              fontSize: buttonTextSize,
-                              fontWeight: FontWeight.w500,
-                            ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(
+                                Icons.play_arrow_rounded,
+                                color: Colors.white,
+                                size: 14,
+                              ),
+                              const SizedBox(width: 2),
+                              const Text(
+                                'View Content',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ],
@@ -269,5 +254,30 @@ class _SubjectSelectionScreenState extends State<SubjectSelectionScreen> {
         ),
       ),
     );
+  }
+
+  void _navigateToContentViewer(String subjectName) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder:
+            (context) => ContentViewerScreen(
+              className: widget.className,
+              subject: subjectName,
+            ),
+      ),
+    );
+  }
+
+  int _getColumnCount(BuildContext context) {
+    final screenSize = MediaQuery.of(context).size;
+    final isSmallScreen = screenSize.width < 600;
+    final isMediumScreen = screenSize.width >= 600 && screenSize.width < 1200;
+    final isLargeScreen = screenSize.width >= 1200;
+
+    if (isLargeScreen) return 4;
+    if (isMediumScreen) return 3;
+    if (isSmallScreen) return 2;
+    return 2;
   }
 }
