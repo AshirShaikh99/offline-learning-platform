@@ -4,6 +4,7 @@ import 'package:uuid/uuid.dart';
 
 import '../../core/constants/app_constants.dart';
 import '../../core/theme/app_theme.dart';
+import '../../core/theme/black_theme.dart';
 import '../../domain/entities/user.dart';
 import '../blocs/auth/auth_bloc.dart';
 import '../blocs/auth/auth_event.dart';
@@ -83,12 +84,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
     final isSmallScreen = screenSize.width < 600;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8E8C8),
+      backgroundColor: BlackTheme.backgroundColor,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () => Navigator.of(context).pop(),
         ),
       ),
@@ -134,17 +135,17 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   maxWidth: 600, // Maximum width for larger screens
                 ),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: BlackTheme.surfaceColor,
                   borderRadius: BorderRadius.circular(30),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.1),
+                      color: BlackTheme.primaryColor.withOpacity(0.3),
                       blurRadius: 10,
                       offset: const Offset(0, 5),
                     ),
                   ],
                 ),
-                padding: EdgeInsets.all(isSmallScreen ? 20 : 32),
+                padding: EdgeInsets.all(isSmallScreen ? 24 : 32),
                 child: Form(
                   key: _formKey,
                   child: Column(
@@ -155,7 +156,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         style: TextStyle(
                           fontSize: isSmallScreen ? 28 : 36,
                           fontWeight: FontWeight.bold,
-                          color: Colors.black,
+                          color: Colors.white,
                         ),
                       ),
                       SizedBox(height: isSmallScreen ? 30 : 40),
@@ -211,7 +212,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               ),
                             );
                           },
-                          child: const Text(
+                          child: Text(
                             'Already have an account? Login',
                             style: TextStyle(
                               color: Colors.grey,
@@ -240,20 +241,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }) {
     return Container(
       decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(30),
+        color: BlackTheme.cardColor,
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(color: Colors.grey.withOpacity(0.3)),
       ),
       child: TextFormField(
         controller: controller,
         obscureText: isPassword,
-        style: TextStyle(
-          fontSize: 16,
-          color:
-              Theme.of(context).brightness == Brightness.dark
-                  ? Colors.white
-                  : Colors.black,
-        ),
+        style: const TextStyle(fontSize: 16, color: Colors.white),
         decoration: InputDecoration(
           hintText: hintText,
           hintStyle: TextStyle(color: Colors.grey.withOpacity(0.7)),
@@ -262,10 +257,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
             vertical: 16,
           ),
           border: InputBorder.none,
-          focusedBorder: InputBorder.none, // Remove focus border
-          enabledBorder: InputBorder.none, // Remove enabled border
-          errorBorder: InputBorder.none, // Remove error border
-          disabledBorder: InputBorder.none, // Remove disabled border
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(16),
+            borderSide: BorderSide(color: BlackTheme.primaryColor, width: 1.5),
+          ),
+          enabledBorder: InputBorder.none,
+          errorBorder: InputBorder.none,
+          disabledBorder: InputBorder.none,
           fillColor: Colors.transparent,
           filled: true,
           suffixIcon:
@@ -325,8 +323,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
         const SizedBox(height: 8),
         Container(
           decoration: BoxDecoration(
-            color: Theme.of(context).cardColor,
-            borderRadius: BorderRadius.circular(30),
+            color: BlackTheme.cardColor,
+            borderRadius: BorderRadius.circular(16),
             border: Border.all(color: Colors.grey.withOpacity(0.3)),
           ),
           padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -351,13 +349,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
               ),
               filled: false,
             ),
-            dropdownColor: Theme.of(context).cardColor,
+            dropdownColor: BlackTheme.cardColor,
             style: TextStyle(
               fontSize: isSmallScreen ? 14 : 16,
-              color:
-                  Theme.of(context).brightness == Brightness.dark
-                      ? Colors.white
-                      : Theme.of(context).textTheme.bodyLarge?.color,
+              color: Colors.white,
               fontWeight: FontWeight.w400,
             ),
             icon: const Icon(Icons.arrow_drop_down, color: Colors.grey),
@@ -401,8 +396,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
         const SizedBox(height: 8),
         Container(
           decoration: BoxDecoration(
-            color: Theme.of(context).cardColor,
-            borderRadius: BorderRadius.circular(30),
+            color: BlackTheme.cardColor,
+            borderRadius: BorderRadius.circular(16),
             border: Border.all(color: Colors.grey.withOpacity(0.3)),
           ),
           padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -427,13 +422,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
               ),
               filled: false,
             ),
-            dropdownColor: Theme.of(context).cardColor,
+            dropdownColor: BlackTheme.cardColor,
             style: TextStyle(
               fontSize: isSmallScreen ? 14 : 16,
-              color:
-                  Theme.of(context).brightness == Brightness.dark
-                      ? Colors.white
-                      : Theme.of(context).textTheme.bodyLarge?.color,
+              color: Colors.white,
               fontWeight: FontWeight.w400,
             ),
             icon: const Icon(Icons.arrow_drop_down, color: Colors.grey),
@@ -466,21 +458,21 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }
 
   Widget _buildRegisterButton() {
-    return Container(
+    return SizedBox(
       width: double.infinity,
       height: 56,
       child: ElevatedButton(
         onPressed: _register,
         style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.black,
+          backgroundColor: BlackTheme.primaryColor,
           foregroundColor: Colors.white,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(30),
+            borderRadius: BorderRadius.circular(16),
           ),
-          elevation: 0,
+          elevation: 4,
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
         ),
-        child: Center(
+        child: const Center(
           // Ensure text is centered
           child: Text(
             'Sign Up',

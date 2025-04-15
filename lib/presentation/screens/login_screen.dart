@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'dart:math';
 
 import '../../core/theme/app_theme.dart';
+import '../../core/theme/black_theme.dart';
 import '../blocs/auth/auth_bloc.dart';
 import '../blocs/auth/auth_event.dart';
 import '../blocs/auth/auth_state.dart';
@@ -96,7 +97,7 @@ class _LoginScreenState extends State<LoginScreen>
     final padding = size.width * 0.05; // 5% of screen width for padding
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8E8C8),
+      backgroundColor: BlackTheme.backgroundColor,
       body: BlocConsumer<AuthBloc, AuthState>(
         listener: (context, state) {
           if (state is AuthError) {
@@ -133,17 +134,17 @@ class _LoginScreenState extends State<LoginScreen>
                         minHeight: size.height * 0.5, // Minimum height
                       ),
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: BlackTheme.surfaceColor,
                         borderRadius: BorderRadius.circular(30),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.1),
+                            color: BlackTheme.primaryColor.withOpacity(0.3),
                             blurRadius: 20,
                             offset: const Offset(0, 10),
                           ),
                         ],
                       ),
-                      padding: EdgeInsets.all(isSmallScreen ? 20 : 32),
+                      padding: EdgeInsets.all(isSmallScreen ? 24 : 36),
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         crossAxisAlignment: CrossAxisAlignment.center,
@@ -177,15 +178,16 @@ class _LoginScreenState extends State<LoginScreen>
           style: TextStyle(
             fontSize: isSmallScreen ? 28 : 36,
             fontWeight: FontWeight.bold,
-            color: Colors.black,
+            color: Colors.white,
           ),
         ),
+        const SizedBox(height: 4),
         Text(
           'to Edutech',
           style: TextStyle(
             fontSize: isSmallScreen ? 28 : 36,
             fontWeight: FontWeight.bold,
-            color: Colors.black,
+            color: BlackTheme.primaryColor,
           ),
         ),
       ],
@@ -213,16 +215,17 @@ class _LoginScreenState extends State<LoginScreen>
           SizedBox(height: isSmallScreen ? 24 : 32),
           SizedBox(
             width: double.infinity,
-            height: isSmallScreen ? 48 : 56,
+            height: isSmallScreen ? 50 : 56,
             child: ElevatedButton(
               onPressed: state is! AuthLoading ? _login : null,
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.black,
+                backgroundColor: BlackTheme.primaryColor,
                 foregroundColor: Colors.white,
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(16),
                 ),
                 padding: EdgeInsets.zero, // Remove default padding
+                elevation: 4,
               ),
               child:
                   state is AuthLoading
@@ -263,20 +266,14 @@ class _LoginScreenState extends State<LoginScreen>
   }) {
     return Container(
       decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(30),
+        color: BlackTheme.cardColor,
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(color: Colors.grey.withOpacity(0.3)),
       ),
       child: TextFormField(
         controller: controller,
         obscureText: isPassword,
-        style: TextStyle(
-          fontSize: 16,
-          color:
-              Theme.of(context).brightness == Brightness.dark
-                  ? Colors.white
-                  : Colors.black,
-        ),
+        style: const TextStyle(fontSize: 16, color: Colors.white),
         decoration: InputDecoration(
           hintText: hintText,
           hintStyle: TextStyle(color: Colors.grey.withOpacity(0.7)),
@@ -285,10 +282,13 @@ class _LoginScreenState extends State<LoginScreen>
             vertical: 16,
           ),
           border: InputBorder.none,
-          focusedBorder: InputBorder.none, // Remove focus border
-          enabledBorder: InputBorder.none, // Remove enabled border
-          errorBorder: InputBorder.none, // Remove error border
-          disabledBorder: InputBorder.none, // Remove disabled border
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(16),
+            borderSide: BorderSide(color: BlackTheme.primaryColor, width: 1.5),
+          ),
+          enabledBorder: InputBorder.none,
+          errorBorder: InputBorder.none,
+          disabledBorder: InputBorder.none,
           fillColor: Colors.transparent,
           filled: true,
           suffixIcon:
@@ -320,11 +320,11 @@ class _LoginScreenState extends State<LoginScreen>
 
   Widget _buildEducationIcons(bool isSmallScreen) {
     final List<Map<String, dynamic>> educationItems = [
-      {'color': const Color(0xFFFF6B6B), 'icon': Icons.school},
-      {'color': const Color(0xFF4ECDC4), 'icon': Icons.auto_stories},
-      {'color': const Color(0xFFFFBE0B), 'icon': Icons.science},
-      {'color': const Color(0xFF7400B8), 'icon': Icons.calculate},
-      {'color': const Color(0xFF80ED99), 'icon': Icons.computer},
+      {'color': BlackTheme.primaryColor, 'icon': Icons.school},
+      {'color': BlackTheme.accentColor, 'icon': Icons.auto_stories},
+      {'color': BlackTheme.secondaryAccentColor, 'icon': Icons.science},
+      {'color': const Color(0xFFBB86FC), 'icon': Icons.calculate},
+      {'color': const Color(0xFF03DAC6), 'icon': Icons.computer},
     ];
 
     return SingleChildScrollView(
@@ -372,14 +372,14 @@ class _LoginScreenState extends State<LoginScreen>
             color: Colors.grey,
             fontSize: MediaQuery.of(context).size.width < 600 ? 14 : 16,
           ),
-          children: const [
-            TextSpan(text: 'New to Edutech? '),
+          children: [
+            const TextSpan(text: 'New to Edutech? '),
             TextSpan(
               text: 'Sign up',
               style: TextStyle(
                 decoration: TextDecoration.underline,
                 fontWeight: FontWeight.bold,
-                color: Colors.black,
+                color: BlackTheme.primaryColor,
               ),
             ),
           ],
