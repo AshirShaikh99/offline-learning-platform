@@ -4,16 +4,19 @@ import '../../widgets/learning_activity_card.dart';
 
 /// A demo screen that showcases the word formation learning activities
 class WordFormationDemoScreen extends StatelessWidget {
-  const WordFormationDemoScreen({super.key});
+  final String? title;
+  final Color? color;
+
+  const WordFormationDemoScreen({super.key, this.title, this.color});
 
   @override
   Widget build(BuildContext context) {
     final isSmallScreen = MediaQuery.of(context).size.width < 600;
-    
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Word Formation'),
-        backgroundColor: AppTheme.primaryColor,
+        title: Text(title ?? 'Word Formation'),
+        backgroundColor: color ?? AppTheme.primaryColor,
         foregroundColor: AppTheme.textOnDarkColor,
         elevation: 0,
       ),
@@ -61,28 +64,13 @@ class WordFormationDemoScreen extends StatelessWidget {
           'wordFormation': true,
           'title': 'Animal Words',
           'challenges': [
-            {
-              'word': 'CAT',
-              'hint': 'A small furry pet that meows',
-            },
-            {
-              'word': 'DOG',
-              'hint': 'A loyal pet that barks',
-            },
-            {
-              'word': 'LION',
-              'hint': 'The king of the jungle',
-            },
-            {
-              'word': 'TIGER',
-              'hint': 'A large wild cat with stripes',
-            },
-            {
-              'word': 'ELEPHANT',
-              'hint': 'A large animal with a trunk',
-            },
+            {'word': 'CAT', 'hint': 'A small furry pet that meows'},
+            {'word': 'DOG', 'hint': 'A loyal pet that barks'},
+            {'word': 'LION', 'hint': 'The king of the jungle'},
+            {'word': 'TIGER', 'hint': 'A large wild cat with stripes'},
+            {'word': 'ELEPHANT', 'hint': 'A large animal with a trunk'},
           ],
-        }
+        },
       ],
     );
   }
@@ -98,14 +86,8 @@ class WordFormationDemoScreen extends StatelessWidget {
           'wordFormation': true,
           'title': 'Fruit Words',
           'challenges': [
-            {
-              'word': 'APPLE',
-              'hint': 'A round fruit that can be red or green',
-            },
-            {
-              'word': 'BANANA',
-              'hint': 'A long yellow fruit',
-            },
+            {'word': 'APPLE', 'hint': 'A round fruit that can be red or green'},
+            {'word': 'BANANA', 'hint': 'A long yellow fruit'},
             {
               'word': 'ORANGE',
               'hint': 'A citrus fruit with the same name as a color',
@@ -119,7 +101,7 @@ class WordFormationDemoScreen extends StatelessWidget {
               'hint': 'A sweet tropical fruit with orange flesh',
             },
           ],
-        }
+        },
       ],
     );
   }

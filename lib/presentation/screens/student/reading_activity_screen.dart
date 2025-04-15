@@ -1,359 +1,564 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_tts/flutter_tts.dart';
-import '../../../core/theme/app_theme.dart';
 
 /// A screen that displays interactive reading activities
 class ReadingActivityScreen extends StatefulWidget {
-  /// The title of the screen
-  final String title;
+  final String? title;
+  final Color? color;
+  final Map<String, dynamic>? content;
 
-  /// The theme color
-  final Color color;
-
-  /// The reading content
-  final Map<String, dynamic> content;
-
-  const ReadingActivityScreen({
-    super.key,
-    required this.title,
-    required this.color,
-    required this.content,
-  });
+  const ReadingActivityScreen({Key? key, this.title, this.color, this.content})
+    : super(key: key);
 
   @override
   State<ReadingActivityScreen> createState() => _ReadingActivityScreenState();
 }
 
 class _ReadingActivityScreenState extends State<ReadingActivityScreen> {
-  late final FlutterTts flutterTts;
-  bool _isReading = false;
-  int _currentPage = 0;
-  List<String> _highlightedWords = [];
+  final FlutterTts flutterTts = FlutterTts();
+  final PageController _pageController = PageController();
+  int _currentPageIndex = 0;
+  bool _showQuestion = false;
+  int? _selectedAnswerIndex;
+  bool _showExplanation = false;
+
+  // Default story pages if none provided through content
+  final List<Map<String, dynamic>> _defaultStoryPages = [
+    {
+      'title': 'The Friendly Robot',
+      'content':
+          'Once upon a time, there was a small robot named Beep. Beep was created to help children learn new things. Beep could talk, sing, and tell amazing stories!',
+      'image': 'robot',
+    },
+    {
+      'title': 'Making Friends',
+      'content':
+          'One day, Beep met a little girl named Lily. Lily was shy at first, but soon she and Beep became best friends. They spent their days exploring and learning together.',
+      'image': 'friends',
+    },
+    {
+      'title': 'The Adventure Begins',
+      'content':
+          'Beep and Lily decided to go on an adventure to the magical forest. In the forest, they discovered talking trees, friendly animals, and a sparkling blue lake.',
+      'image': 'forest',
+    },
+    {
+      'title': 'The Challenge',
+      'content':
+          'At the lake, they met a wise old turtle who gave them a challenge. To cross the lake, they needed to answer three questions about friendship.',
+      'image': 'turtle',
+      'question': {
+        'text': 'What makes someone a good friend?',
+        'options': [
+          'They give you lots of toys',
+          'They listen to you and help you when you need it',
+          'They are always better than you at games',
+          'They never disagree with you',
+        ],
+        'correctAnswer': 1,
+        'explanation':
+            'Good friends listen to each other and help each other when needed. They care about your feelings and support you.',
+      },
+    },
+  ];
+
+  List<Map<String, dynamic>> get _storyPages {
+    // Use content from widget if provided, otherwise use default
+    if (widget.content != null && widget.content!.containsKey('pages')) {
+      return List<Map<String, dynamic>>.from(widget.content!['pages']);
+    }
+    return _defaultStoryPages;
+  }
 
   @override
   void initState() {
     super.initState();
-    flutterTts = FlutterTts();
-    _setupTts();
+    _initTts();
   }
 
-  Future<void> _setupTts() async {
+  Future<void> _initTts() async {
     await flutterTts.setLanguage('en-US');
     await flutterTts.setSpeechRate(0.5);
-
-    flutterTts.setCompletionHandler(() {
-      if (mounted) {
-        setState(() {
-          _isReading = false;
-        });
-      }
-    });
+    await flutterTts.setVolume(1.0);
+    await flutterTts.setPitch(1.0);
   }
 
   @override
   void dispose() {
     flutterTts.stop();
+    _pageController.dispose();
     super.dispose();
   }
 
   Future<void> _speak(String text) async {
-    if (_isReading) {
-      await flutterTts.stop();
-      setState(() {
-        _isReading = false;
-      });
-      return;
-    }
-
-    setState(() {
-      _isReading = true;
-    });
-
     await flutterTts.speak(text);
   }
 
   void _nextPage() {
-    if (_currentPage < widget.content['pages'].length - 1) {
-      setState(() {
-        _currentPage++;
-        _highlightedWords = [];
-      });
+    if (_currentPageIndex < _storyPages.length - 1) {
+      _pageController.nextPage(
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+      );
     }
   }
 
   void _previousPage() {
-    if (_currentPage > 0) {
-      setState(() {
-        _currentPage--;
-        _highlightedWords = [];
-      });
+    if (_currentPageIndex > 0) {
+      _pageController.previousPage(
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+      );
     }
   }
 
-  void _toggleWordHighlight(String word) {
+  void _selectAnswer(int index) {
     setState(() {
-      if (_highlightedWords.contains(word)) {
-        _highlightedWords.remove(word);
-      } else {
-        _highlightedWords.add(word);
-        _speak(word);
-      }
+      _selectedAnswerIndex = index;
+      _showExplanation = true;
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    final isSmallScreen = MediaQuery.of(context).size.width < 600;
-    final currentPageData = widget.content['pages'][_currentPage];
-
     return Scaffold(
+      backgroundColor: Colors.black,
       appBar: AppBar(
-        title: Text(widget.title),
-        backgroundColor: widget.color,
-        foregroundColor: AppTheme.textOnDarkColor,
+        backgroundColor: Colors.black,
         elevation: 0,
-      ),
-      body: Column(
-        children: [
-          // Progress indicator
-          LinearProgressIndicator(
-            value: (_currentPage + 1) / widget.content['pages'].length,
-            backgroundColor: Theme.of(context).colorScheme.surface,
-            color: widget.color,
+        title: Text(
+          widget.title ?? 'Interactive Reading',
+          style: const TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+            fontSize: 18,
           ),
-
-          // Main content
-          Expanded(
-            child: Container(
-              decoration: BoxDecoration(
-                color: Colors.black.withAlpha(200),
-                borderRadius: BorderRadius.circular(12),
+        ),
+        leading: IconButton(
+          icon: Container(
+            decoration: BoxDecoration(
+              color: (widget.color ?? const Color(0xFFFF2D95)).withOpacity(
+                0.15,
               ),
-              margin: EdgeInsets.all(isSmallScreen ? 8 : 16),
-              padding: EdgeInsets.all(isSmallScreen ? 16 : 24),
+              shape: BoxShape.circle,
+            ),
+            padding: const EdgeInsets.all(4),
+            child: Icon(
+              Icons.arrow_back,
+              color: widget.color ?? const Color(0xFFFF2D95),
+              size: 20,
+            ),
+          ),
+          onPressed: () => Navigator.pop(context),
+        ),
+      ),
+      body: SafeArea(
+        child: Column(
+          children: [
+            Expanded(
+              child: PageView.builder(
+                controller: _pageController,
+                itemCount: _storyPages.length,
+                onPageChanged: (index) {
+                  setState(() {
+                    _currentPageIndex = index;
+                    _showQuestion = false;
+                    _selectedAnswerIndex = null;
+                    _showExplanation = false;
+                  });
+                },
+                itemBuilder: (context, index) {
+                  final page = _storyPages[index];
+                  return _buildStoryPage(page);
+                },
+              ),
+            ),
+            _buildPageControls(),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStoryPage(Map<String, dynamic> page) {
+    final hasQuestion = page.containsKey('question');
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: double.infinity,
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Color(0xFF121212), Color(0xFF1A1A1A)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(24),
+              boxShadow: [
+                BoxShadow(
+                  color: (widget.color ?? const Color(0xFFFF2D95)).withOpacity(
+                    0.1,
+                  ),
+                  blurRadius: 8,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Title
-                  Text(
-                    currentPageData['title'],
-                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                      fontSize: isSmallScreen ? 24 : 32,
-                      color: Colors.white,
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFFF2D95).withOpacity(0.15),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: const Icon(
+                          Icons.auto_stories,
+                          color: Color(0xFFFF2D95),
+                          size: 20,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          page['title'],
+                          style: const TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                      IconButton(
+                        icon: const Icon(
+                          Icons.volume_up,
+                          color: Color(0xFFFF2D95),
+                        ),
+                        onPressed: () => _speak(page['content']),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  Container(
+                    width: double.infinity,
+                    height: 180,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF252550),
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Center(
+                      child: Icon(
+                        _getImageIcon(page['image']),
+                        size: 100,
+                        color: const Color(0xFFFF2D95).withOpacity(0.5),
+                      ),
                     ),
                   ),
                   const SizedBox(height: 16),
-
-                  // Image if available
-                  if (currentPageData.containsKey('image'))
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 16),
-                      child: Center(
-                        child: Image.asset(
-                          currentPageData['image'],
-                          height: isSmallScreen ? 150 : 200,
-                          fit: BoxFit.contain,
-                        ),
-                      ),
-                    ),
-
-                  // Content
-                  Expanded(
-                    child: SingleChildScrollView(
-                      child: _buildInteractiveText(
-                        currentPageData['content'],
-                        isSmallScreen,
-                      ),
+                  Text(
+                    page['content'],
+                    style: const TextStyle(
+                      fontSize: 16,
+                      height: 1.5,
+                      color: Colors.white,
                     ),
                   ),
-
-                  // Question if available
-                  if (currentPageData.containsKey('question'))
-                    _buildQuestion(currentPageData['question'], isSmallScreen),
                 ],
               ),
             ),
           ),
-
-          // Controls
-          Container(
-            padding: EdgeInsets.all(isSmallScreen ? 12 : 16),
-            decoration: BoxDecoration(
-              color: Colors.black.withAlpha(200),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withAlpha(100),
-                  blurRadius: 4,
-                  offset: const Offset(0, -2),
-                ),
-              ],
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                // Previous button
-                IconButton(
-                  onPressed: _currentPage > 0 ? _previousPage : null,
-                  icon: const Icon(Icons.arrow_back),
-                  color: _currentPage > 0 ? Colors.white : Colors.grey,
-                ),
-
-                // Read aloud button
-                ElevatedButton.icon(
-                  onPressed: () => _speak(currentPageData['content']),
-                  icon: Icon(_isReading ? Icons.stop : Icons.volume_up),
-                  label: Text(_isReading ? 'Stop' : 'Read Aloud'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: widget.color,
-                    foregroundColor: AppTheme.textOnDarkColor,
+          if (hasQuestion) ...[
+            const SizedBox(height: 24),
+            Center(
+              child: ElevatedButton(
+                onPressed: () {
+                  setState(() {
+                    _showQuestion = true;
+                  });
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: widget.color ?? const Color(0xFFFF2D95),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 12,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
                   ),
                 ),
-
-                // Next button
-                IconButton(
-                  onPressed:
-                      _currentPage < widget.content['pages'].length - 1
-                          ? _nextPage
-                          : null,
-                  icon: const Icon(Icons.arrow_forward),
-                  color:
-                      _currentPage < widget.content['pages'].length - 1
-                          ? Colors.white
-                          : Colors.grey,
+                child: const Text(
+                  'Answer Question',
+                  style: TextStyle(fontSize: 16),
                 ),
-              ],
+              ),
             ),
-          ),
+            if (_showQuestion) _buildQuestionSection(page['question']),
+          ],
         ],
       ),
     );
   }
 
-  Widget _buildInteractiveText(String text, bool isSmallScreen) {
-    final words = text.split(' ');
-
-    return Wrap(
-      spacing: 4,
-      runSpacing: 4,
-      children:
-          words.map((word) {
-            final cleanWord = word.replaceAll(RegExp(r'[^\w\s]'), '');
-            final isPunctuation = cleanWord.isEmpty;
-            final isHighlighted = _highlightedWords.contains(cleanWord);
-
-            return GestureDetector(
-              onTap:
-                  isPunctuation ? null : () => _toggleWordHighlight(cleanWord),
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-                decoration: BoxDecoration(
-                  color:
-                      isHighlighted
-                          ? widget.color.withAlpha(51)
-                          : null, // 0.2 * 255 = 51
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                child: Text(
-                  word,
-                  style: TextStyle(
-                    fontSize: isSmallScreen ? 18 : 22,
-                    fontWeight:
-                        isHighlighted ? FontWeight.bold : FontWeight.normal,
-                    color: isHighlighted ? widget.color : Colors.white,
-                  ),
-                ),
-              ),
-            );
-          }).toList(),
-    );
-  }
-
-  Widget _buildQuestion(Map<String, dynamic> question, bool isSmallScreen) {
+  Widget _buildQuestionSection(Map<String, dynamic> question) {
     return Container(
       margin: const EdgeInsets.only(top: 24),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.black.withAlpha(150),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: widget.color, width: 1.5),
+        color: const Color(0xFF252550),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: const Color(0xFF00E5FF).withOpacity(0.3),
+          width: 1,
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Question:',
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-              fontSize: isSmallScreen ? 18 : 20,
-              color: Colors.white,
-            ),
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF00E5FF).withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(
+                  Icons.quiz,
+                  color: Color(0xFF00E5FF),
+                  size: 18,
+                ),
+              ),
+              const SizedBox(width: 12),
+              const Expanded(
+                child: Text(
+                  'Question',
+                  style: TextStyle(
+                    color: Color(0xFF00E5FF),
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 12),
           Text(
             question['text'],
-            style: TextStyle(
-              fontSize: isSmallScreen ? 16 : 18,
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w500,
               color: Colors.white,
             ),
           ),
           const SizedBox(height: 16),
           ...List.generate(
             question['options'].length,
-            (index) => RadioListTile<int>(
-              title: Text(
-                question['options'][index],
-                style: TextStyle(color: Colors.white),
-              ),
-              value: index,
-              groupValue: question['selectedAnswer'],
-              activeColor: Colors.white,
-              onChanged: (value) {
-                setState(() {
-                  question['selectedAnswer'] = value;
-                });
-              },
+            (index) => _buildAnswerOption(
+              index,
+              question['options'][index],
+              question['correctAnswer'],
             ),
           ),
-          const SizedBox(height: 8),
-          if (question['selectedAnswer'] != null)
+          if (_showExplanation) ...[
+            const SizedBox(height: 16),
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color:
-                    question['selectedAnswer'] == question['correctAnswer']
-                        ? AppTheme.secondaryColor.withAlpha(
-                          100,
-                        ) // 0.4 * 255 = 102
-                        : AppTheme.errorColor.withAlpha(100), // 0.4 * 255 = 102
-                borderRadius: BorderRadius.circular(8),
+                color: const Color(0xFF39FF14).withOpacity(0.1),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: const Color(0xFF39FF14).withOpacity(0.3),
+                  width: 1,
+                ),
               ),
-              child: Row(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Icon(
-                    question['selectedAnswer'] == question['correctAnswer']
-                        ? Icons.check_circle
-                        : Icons.cancel,
-                    color:
-                        question['selectedAnswer'] == question['correctAnswer']
-                            ? AppTheme.secondaryColor
-                            : AppTheme.errorColor,
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      question['selectedAnswer'] == question['correctAnswer']
-                          ? 'Correct! ${question['explanation']}'
-                          : 'Try again. Hint: ${question['hint']}',
-                      style: TextStyle(
-                        fontSize: isSmallScreen ? 14 : 16,
-                        color: Colors.white,
+                  const Row(
+                    children: [
+                      Icon(Icons.lightbulb, color: Color(0xFF39FF14), size: 18),
+                      SizedBox(width: 8),
+                      Text(
+                        'Explanation:',
+                        style: TextStyle(
+                          color: Color(0xFF39FF14),
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
-                    ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    question['explanation'],
+                    style: const TextStyle(color: Colors.white, fontSize: 14),
                   ),
                 ],
               ),
             ),
+          ],
         ],
       ),
     );
+  }
+
+  Widget _buildAnswerOption(int index, String text, int correctAnswer) {
+    final isSelected = _selectedAnswerIndex == index;
+    final isCorrect = index == correctAnswer;
+
+    Color borderColor = Colors.grey.withOpacity(0.3);
+    Color fillColor = Colors.transparent;
+
+    if (isSelected) {
+      borderColor =
+          isCorrect ? const Color(0xFF39FF14) : const Color(0xFFFF3131);
+      fillColor =
+          isCorrect
+              ? const Color(0xFF39FF14).withOpacity(0.1)
+              : const Color(0xFFFF3131).withOpacity(0.1);
+    }
+
+    return GestureDetector(
+      onTap: _selectedAnswerIndex == null ? () => _selectAnswer(index) : null,
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 10),
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+        decoration: BoxDecoration(
+          color: fillColor,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: borderColor, width: 1.5),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 24,
+              height: 24,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color:
+                    isSelected
+                        ? (isCorrect
+                            ? const Color(0xFF39FF14)
+                            : const Color(0xFFFF3131))
+                        : Colors.transparent,
+                border: Border.all(
+                  color:
+                      isSelected
+                          ? (isCorrect
+                              ? const Color(0xFF39FF14)
+                              : const Color(0xFFFF3131))
+                          : Colors.grey,
+                  width: 1.5,
+                ),
+              ),
+              child:
+                  isSelected
+                      ? Icon(
+                        isCorrect ? Icons.check : Icons.close,
+                        color: Colors.black,
+                        size: 16,
+                      )
+                      : null,
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                text,
+                style: TextStyle(
+                  color:
+                      isSelected
+                          ? (isCorrect
+                              ? const Color(0xFF39FF14)
+                              : const Color(0xFFFF3131))
+                          : Colors.white,
+                  fontSize: 15,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPageControls() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: const BoxDecoration(
+        color: Color(0xFF121212),
+        border: Border(top: BorderSide(color: Color(0xFF252550), width: 1)),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          ElevatedButton(
+            onPressed: _currentPageIndex > 0 ? _previousPage : null,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF252550),
+              foregroundColor: Colors.white,
+              disabledBackgroundColor: const Color(0xFF252550).withOpacity(0.3),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.arrow_back_ios, size: 16),
+                const SizedBox(width: 4),
+                Text(
+                  'Previous (${_currentPageIndex}/${_storyPages.length - 1})',
+                ),
+              ],
+            ),
+          ),
+          ElevatedButton(
+            onPressed:
+                _currentPageIndex < _storyPages.length - 1 ? _nextPage : null,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: widget.color ?? const Color(0xFFFF2D95),
+              foregroundColor: Colors.white,
+              disabledBackgroundColor: (widget.color ?? const Color(0xFFFF2D95))
+                  .withOpacity(0.3),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            child: Row(
+              children: [
+                Text(
+                  'Next (${_currentPageIndex + 1}/${_storyPages.length - 1})',
+                ),
+                const SizedBox(width: 4),
+                const Icon(Icons.arrow_forward_ios, size: 16),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  IconData _getImageIcon(String image) {
+    switch (image) {
+      case 'robot':
+        return Icons.smart_toy;
+      case 'friends':
+        return Icons.people;
+      case 'forest':
+        return Icons.forest;
+      case 'turtle':
+        return Icons.pets;
+      default:
+        return Icons.image;
+    }
   }
 }

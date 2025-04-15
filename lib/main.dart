@@ -135,7 +135,7 @@ class MyApp extends StatelessWidget {
         debugShowCheckedModeBanner: false,
         title: 'Edutech',
         theme: _buildLightTheme(),
-        darkTheme: _buildDarkTheme(),
+        darkTheme: AppTheme.sleekBlackTheme,
         themeMode: ThemeMode.dark,
         home: Scaffold(
           backgroundColor: Colors.black,
@@ -182,7 +182,7 @@ class MyApp extends StatelessWidget {
         debugShowCheckedModeBanner: false,
         title: 'Edutech',
         theme: _buildLightTheme(),
-        darkTheme: _buildDarkTheme(),
+        darkTheme: AppTheme.sleekBlackTheme,
         themeMode: ThemeMode.dark,
         home: const AppLifecycleManager(child: LoginScreen()),
       ),

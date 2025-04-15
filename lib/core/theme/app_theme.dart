@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'black_theme.dart';
 
 /// Application theme configuration
 class AppTheme {
@@ -170,4 +171,7 @@ class AppTheme {
       ),
     );
   }
+
+  // Sleek Black Theme
+  static ThemeData get sleekBlackTheme => BlackTheme.theme;
 }

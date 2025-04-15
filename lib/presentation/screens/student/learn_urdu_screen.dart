@@ -4,149 +4,57 @@ import 'package:flutter_tts/flutter_tts.dart';
 
 import '../../../core/theme/app_theme.dart';
 
+/// A model class for Urdu letters
+class Letter {
+  final String letter;
+  final String name;
+  final String sound;
+  final String pronunciation;
+
+  Letter({
+    required this.letter,
+    required this.name,
+    required this.sound,
+    required this.pronunciation,
+  });
+
+  factory Letter.fromMap(Map<String, dynamic> map) {
+    return Letter(
+      letter: map['letter'] as String,
+      name: map['name'] as String,
+      sound: map['sound'] as String,
+      pronunciation: map['pronunciation'] as String,
+    );
+  }
+}
+
 /// A screen for learning Urdu with touch-based voice activity
 class LearnUrduScreen extends StatefulWidget {
-  const LearnUrduScreen({super.key});
+  const LearnUrduScreen({Key? key}) : super(key: key);
 
   @override
   State<LearnUrduScreen> createState() => _LearnUrduScreenState();
 }
 
 class _LearnUrduScreenState extends State<LearnUrduScreen> {
-  final FlutterTts _flutterTts = FlutterTts();
+  int _selectedIndex = -1;
+  Letter? _selectedLetter;
+  late FlutterTts _flutterTts;
   bool _isSpeaking = false;
-  String _currentWord = '';
-  
-  // List of Urdu letters with their transliterations and meanings
-  final List<Map<String, String>> _urduLetters = [
-    {
-      'letter': 'ا',
-      'transliteration': 'Alif',
-      'example': 'Anaar (Pomegranate)',
-      'image': 'assets/images/urdu/alif.png',
-    },
-    {
-      'letter': 'ب',
-      'transliteration': 'Bay',
-      'example': 'Bakri (Goat)',
-      'image': 'assets/images/urdu/bay.png',
-    },
-    {
-      'letter': 'پ',
-      'transliteration': 'Pay',
-      'example': 'Pankha (Fan)',
-      'image': 'assets/images/urdu/pay.png',
-    },
-    {
-      'letter': 'ت',
-      'transliteration': 'Tay',
-      'example': 'Titli (Butterfly)',
-      'image': 'assets/images/urdu/tay.png',
-    },
-    {
-      'letter': 'ٹ',
-      'transliteration': 'Ttay',
-      'example': 'Tamatar (Tomato)',
-      'image': 'assets/images/urdu/ttay.png',
-    },
-    {
-      'letter': 'ث',
-      'transliteration': 'Say',
-      'example': 'Samar (Fruit)',
-      'image': 'assets/images/urdu/say.png',
-    },
-    {
-      'letter': 'ج',
-      'transliteration': 'Jeem',
-      'example': 'Jahaz (Airplane)',
-      'image': 'assets/images/urdu/jeem.png',
-    },
-    {
-      'letter': 'چ',
-      'transliteration': 'Chay',
-      'example': 'Chaand (Moon)',
-      'image': 'assets/images/urdu/chay.png',
-    },
-    {
-      'letter': 'ح',
-      'transliteration': 'Hay',
-      'example': 'Halwa (Sweet)',
-      'image': 'assets/images/urdu/hay.png',
-    },
-    {
-      'letter': 'خ',
-      'transliteration': 'Khay',
-      'example': 'Khargosh (Rabbit)',
-      'image': 'assets/images/urdu/khay.png',
-    },
-  ];
-  
-  // List of common Urdu words with their meanings
-  final List<Map<String, String>> _urduWords = [
-    {
-      'word': 'سلام',
-      'transliteration': 'Salaam',
-      'meaning': 'Peace/Hello',
-      'image': 'assets/images/urdu/salaam.png',
-    },
-    {
-      'word': 'شکریہ',
-      'transliteration': 'Shukriya',
-      'meaning': 'Thank you',
-      'image': 'assets/images/urdu/shukriya.png',
-    },
-    {
-      'word': 'پانی',
-      'transliteration': 'Paani',
-      'meaning': 'Water',
-      'image': 'assets/images/urdu/paani.png',
-    },
-    {
-      'word': 'کھانا',
-      'transliteration': 'Khana',
-      'meaning': 'Food',
-      'image': 'assets/images/urdu/khana.png',
-    },
-    {
-      'word': 'گھر',
-      'transliteration': 'Ghar',
-      'meaning': 'Home',
-      'image': 'assets/images/urdu/ghar.png',
-    },
-  ];
-  
-  // List of Urdu numbers with their transliterations
-  final List<Map<String, String>> _urduNumbers = [
-    {
-      'number': '١',
-      'transliteration': 'Aik',
-      'meaning': 'One',
-      'image': 'assets/images/urdu/one.png',
-    },
-    {
-      'number': '٢',
-      'transliteration': 'Do',
-      'meaning': 'Two',
-      'image': 'assets/images/urdu/two.png',
-    },
-    {
-      'number': '٣',
-      'transliteration': 'Teen',
-      'meaning': 'Three',
-      'image': 'assets/images/urdu/three.png',
-    },
-    {
-      'number': '٤',
-      'transliteration': 'Chaar',
-      'meaning': 'Four',
-      'image': 'assets/images/urdu/four.png',
-    },
-    {
-      'number': '٥',
-      'transliteration': 'Paanch',
-      'meaning': 'Five',
-      'image': 'assets/images/urdu/five.png',
-    },
+
+  final List<Letter> _letters = [
+    Letter(letter: 'ا', name: 'Alif', sound: 'ah', pronunciation: 'الف'),
+    Letter(letter: 'ب', name: 'Bay', sound: 'b', pronunciation: 'بے'),
+    Letter(letter: 'پ', name: 'Pay', sound: 'p', pronunciation: 'پے'),
+    Letter(letter: 'ت', name: 'Tay', sound: 't', pronunciation: 'تے'),
+    Letter(letter: 'ٹ', name: 'Ttay', sound: 't (hard)', pronunciation: 'ٹے'),
+    Letter(letter: 'ث', name: 'Say', sound: 's', pronunciation: 'سے'),
+    Letter(letter: 'ج', name: 'Jeem', sound: 'j', pronunciation: 'جیم'),
+    Letter(letter: 'چ', name: 'Chay', sound: 'ch', pronunciation: 'چے'),
+    Letter(letter: 'ح', name: 'Hay', sound: 'h (heavy)', pronunciation: 'حے'),
+    Letter(letter: 'خ', name: 'Khay', sound: 'kh', pronunciation: 'خے'),
+    Letter(letter: 'د', name: 'Daal', sound: 'd', pronunciation: 'دال'),
+    Letter(letter: 'ڈ', name: 'Ddaal', sound: 'd (hard)', pronunciation: 'ڈال'),
   ];
 
   @override
@@ -162,372 +70,431 @@ class _LearnUrduScreenState extends State<LearnUrduScreen> {
   }
 
   Future<void> _initTts() async {
-    await _flutterTts.setLanguage('ur-PK');
-    await _flutterTts.setSpeechRate(0.5);
+    _flutterTts = FlutterTts();
     await _flutterTts.setVolume(1.0);
-    await _flutterTts.setPitch(1.0);
-    
+    await _flutterTts.setSpeechRate(0.5);
+
     _flutterTts.setCompletionHandler(() {
       setState(() {
         _isSpeaking = false;
       });
     });
+
+    _flutterTts.setErrorHandler((error) {
+      setState(() {
+        _isSpeaking = false;
+      });
+      debugPrint('TTS error: $error');
+    });
   }
 
-  Future<void> _speak(String text) async {
+  Future<void> _speak(String text, {bool isEnglish = false}) async {
     if (_isSpeaking) {
       await _flutterTts.stop();
       setState(() {
         _isSpeaking = false;
       });
-      
-      if (_currentWord == text) {
-        return;
-      }
+      await Future.delayed(const Duration(milliseconds: 200));
     }
-    
+
     setState(() {
       _isSpeaking = true;
-      _currentWord = text;
     });
-    
-    HapticFeedback.mediumImpact();
-    await _flutterTts.speak(text);
+
+    try {
+      await _flutterTts.setLanguage(isEnglish ? "en-US" : "ur-PK");
+      await _flutterTts.setPitch(1.0);
+      await _flutterTts.speak(text);
+    } catch (e) {
+      debugPrint('Error playing TTS: $e');
+      setState(() {
+        _isSpeaking = false;
+      });
+    }
+  }
+
+  void _playSound(Letter letter) async {
+    if (_isSpeaking) {
+      await _flutterTts.stop();
+      setState(() {
+        _isSpeaking = false;
+      });
+      await Future.delayed(const Duration(milliseconds: 200));
+    }
+
+    setState(() {
+      _isSpeaking = true;
+    });
+
+    try {
+      // Play the English pronunciation
+      await _flutterTts.setLanguage("en-US");
+      await _flutterTts.setPitch(1.0);
+      await _flutterTts.speak(letter.name);
+
+      // Wait a moment before playing the Urdu pronunciation
+      await Future.delayed(const Duration(milliseconds: 1500));
+
+      // Play the Urdu pronunciation
+      await _flutterTts.setLanguage("ur-PK");
+      await _flutterTts.setPitch(1.0);
+      await _flutterTts.speak(letter.pronunciation);
+    } catch (e) {
+      debugPrint('Error playing TTS: $e');
+      setState(() {
+        _isSpeaking = false;
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    final size = MediaQuery.of(context).size;
-    final isSmallScreen = size.width < 600;
-    
-    return DefaultTabController(
-      length: 3,
-      child: Scaffold(
-        appBar: AppBar(
-          title: const Text(
-            'Learn Urdu',
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-            ),
-          ),
-          backgroundColor: AppTheme.indigoColor,
-          foregroundColor: Colors.white,
-          bottom: const TabBar(
-            indicatorColor: Colors.white,
-            labelColor: Colors.white,
-            unselectedLabelColor: Colors.white70,
-            tabs: [
-              Tab(text: 'Letters', icon: Icon(Icons.text_fields)),
-              Tab(text: 'Words', icon: Icon(Icons.translate)),
-              Tab(text: 'Numbers', icon: Icon(Icons.format_list_numbered)),
-            ],
+    return Scaffold(
+      backgroundColor: Colors.black,
+      appBar: AppBar(
+        backgroundColor: Colors.black,
+        elevation: 0,
+        title: const Text(
+          'Learn Urdu Alphabet',
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+            fontSize: 18,
           ),
         ),
-        body: TabBarView(
+        leading: IconButton(
+          icon: Container(
+            decoration: BoxDecoration(
+              color: const Color(0xFF0088FF).withOpacity(0.15),
+              shape: BoxShape.circle,
+            ),
+            padding: const EdgeInsets.all(4),
+            child: const Icon(
+              Icons.arrow_back,
+              color: Color(0xFF0088FF),
+              size: 20,
+            ),
+          ),
+          onPressed: () => Navigator.pop(context),
+        ),
+      ),
+      body: Column(
+        children: [
+          _buildHeader(),
+          Expanded(
+            child: GridView.builder(
+              padding: const EdgeInsets.all(16),
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                crossAxisSpacing: 16,
+                mainAxisSpacing: 16,
+                childAspectRatio: 1.1,
+              ),
+              itemCount: _letters.length,
+              itemBuilder: (context, index) {
+                return _buildLetterCard(index);
+              },
+            ),
+          ),
+          if (_selectedIndex != -1) _buildDetailCard(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildHeader() {
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [Color(0xFF0088FF), Color(0xFF5D00FF)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF0088FF).withOpacity(0.2),
+            blurRadius: 8,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(
+                  Icons.translate,
+                  color: Colors.white,
+                  size: 20,
+                ),
+              ),
+              const SizedBox(width: 12),
+              const Expanded(
+                child: Text(
+                  'Urdu Learning',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          const Text(
+            'Learn the Urdu alphabet with interactive cards. Tap on a letter to hear its pronunciation and see examples.',
+            style: TextStyle(color: Colors.white, fontSize: 14, height: 1.4),
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              const Icon(Icons.lightbulb, color: Colors.yellow, size: 18),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'Tap on any card to learn more!',
+                  style: TextStyle(
+                    color: Colors.yellow.shade200,
+                    fontSize: 13,
+                    fontStyle: FontStyle.italic,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLetterCard(int index) {
+    final letter = _letters[index];
+    final isSelected = _selectedIndex == index;
+
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          _selectedIndex = isSelected ? -1 : index;
+          _selectedLetter = isSelected ? null : letter;
+        });
+        _playSound(letter);
+      },
+      child: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors:
+                isSelected
+                    ? [const Color(0xFF0088FF), const Color(0xFF5D00FF)]
+                    : [const Color(0xFF1A1A1A), const Color(0xFF252550)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color:
+                isSelected ? const Color(0xFF0088FF) : const Color(0xFF3A3A3A),
+            width: isSelected ? 2 : 1,
+          ),
+          boxShadow:
+              isSelected
+                  ? [
+                    BoxShadow(
+                      color: const Color(0xFF0088FF).withOpacity(0.3),
+                      blurRadius: 8,
+                      offset: const Offset(0, 4),
+                    ),
+                  ]
+                  : [],
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            _buildLettersGrid(isSmallScreen),
-            _buildWordsGrid(isSmallScreen),
-            _buildNumbersGrid(isSmallScreen),
+            Text(
+              letter.letter,
+              style: TextStyle(
+                fontSize: 48,
+                fontWeight: FontWeight.bold,
+                color: isSelected ? Colors.white : const Color(0xFF0088FF),
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              letter.name,
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                color: isSelected ? Colors.white : Colors.white70,
+              ),
+            ),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildLettersGrid(bool isSmallScreen) {
-    return GridView.builder(
-      padding: EdgeInsets.all(isSmallScreen ? 12 : 16),
-      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: isSmallScreen ? 2 : 3,
-        childAspectRatio: isSmallScreen ? 1.0 : 1.2,
-        crossAxisSpacing: isSmallScreen ? 12 : 16,
-        mainAxisSpacing: isSmallScreen ? 12 : 16,
-      ),
-      itemCount: _urduLetters.length,
-      itemBuilder: (context, index) {
-        final letter = _urduLetters[index];
-        return _buildLetterCard(
-          letter['letter']!,
-          letter['transliteration']!,
-          letter['example']!,
-          isSmallScreen,
-        );
-      },
-    );
-  }
+  Widget _buildDetailCard() {
+    if (_selectedIndex == -1 || _selectedLetter == null)
+      return const SizedBox();
 
-  Widget _buildWordsGrid(bool isSmallScreen) {
-    return GridView.builder(
-      padding: EdgeInsets.all(isSmallScreen ? 12 : 16),
-      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: isSmallScreen ? 1 : 2,
-        childAspectRatio: isSmallScreen ? 2.0 : 2.2,
-        crossAxisSpacing: isSmallScreen ? 12 : 16,
-        mainAxisSpacing: isSmallScreen ? 12 : 16,
-      ),
-      itemCount: _urduWords.length,
-      itemBuilder: (context, index) {
-        final word = _urduWords[index];
-        return _buildWordCard(
-          word['word']!,
-          word['transliteration']!,
-          word['meaning']!,
-          isSmallScreen,
-        );
-      },
-    );
-  }
+    final letter = _selectedLetter!;
 
-  Widget _buildNumbersGrid(bool isSmallScreen) {
-    return GridView.builder(
-      padding: EdgeInsets.all(isSmallScreen ? 12 : 16),
-      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: isSmallScreen ? 2 : 3,
-        childAspectRatio: isSmallScreen ? 1.0 : 1.2,
-        crossAxisSpacing: isSmallScreen ? 12 : 16,
-        mainAxisSpacing: isSmallScreen ? 12 : 16,
-      ),
-      itemCount: _urduNumbers.length,
-      itemBuilder: (context, index) {
-        final number = _urduNumbers[index];
-        return _buildNumberCard(
-          number['number']!,
-          number['transliteration']!,
-          number['meaning']!,
-          isSmallScreen,
-        );
-      },
-    );
-  }
-
-  Widget _buildLetterCard(
-    String letter,
-    String transliteration,
-    String example,
-    bool isSmallScreen,
-  ) {
-    return Card(
-      elevation: 4,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: InkWell(
-        onTap: () => _speak(transliteration),
-        borderRadius: BorderRadius.circular(16),
-        child: Container(
-          padding: EdgeInsets.all(isSmallScreen ? 12 : 16),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
-            gradient: LinearGradient(
-              colors: [
-                AppTheme.indigoColor,
-                AppTheme.indigoColor.withAlpha(200),
-              ],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-          ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                letter,
-                style: TextStyle(
-                  fontSize: isSmallScreen ? 48 : 64,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                transliteration,
-                style: TextStyle(
-                  fontSize: isSmallScreen ? 16 : 20,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                example,
-                style: TextStyle(
-                  fontSize: isSmallScreen ? 12 : 14,
-                  color: Colors.white70,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 8),
-              Icon(
-                _isSpeaking && _currentWord == transliteration
-                    ? Icons.volume_up
-                    : Icons.touch_app,
-                color: Colors.white,
-                size: isSmallScreen ? 20 : 24,
-              ),
-            ],
-          ),
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: const Color(0xFF1A1A1A),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: const Color(0xFF0088FF).withOpacity(0.5),
+          width: 1,
         ),
       ),
-    );
-  }
-
-  Widget _buildWordCard(
-    String word,
-    String transliteration,
-    String meaning,
-    bool isSmallScreen,
-  ) {
-    return Card(
-      elevation: 4,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: InkWell(
-        onTap: () => _speak(transliteration),
-        borderRadius: BorderRadius.circular(16),
-        child: Container(
-          padding: EdgeInsets.all(isSmallScreen ? 16 : 20),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
-            gradient: LinearGradient(
-              colors: [
-                AppTheme.tealColor,
-                AppTheme.tealColor.withAlpha(200),
-              ],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-          ),
-          child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
             children: [
+              Container(
+                width: 50,
+                height: 50,
+                decoration: BoxDecoration(
+                  color: const Color(0xFF0088FF).withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Center(
+                  child: Text(
+                    letter.letter,
+                    style: const TextStyle(
+                      fontSize: 28,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF0088FF),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 16),
               Expanded(
-                flex: 2,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                      word,
-                      style: TextStyle(
-                        fontSize: isSmallScreen ? 32 : 40,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      transliteration,
-                      style: TextStyle(
-                        fontSize: isSmallScreen ? 18 : 22,
+                      letter.name,
+                      style: const TextStyle(
+                        fontSize: 20,
                         fontWeight: FontWeight.bold,
                         color: Colors.white,
                       ),
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      meaning,
-                      style: TextStyle(
-                        fontSize: isSmallScreen ? 14 : 16,
+                      'Pronounced: ${letter.sound}',
+                      style: const TextStyle(
+                        fontSize: 14,
                         color: Colors.white70,
                       ),
                     ),
                   ],
                 ),
               ),
+              Row(
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.volume_up, color: Color(0xFF0088FF)),
+                    onPressed: () => _playSound(letter),
+                    tooltip: 'Speak in Urdu',
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.language, color: Colors.green),
+                    onPressed: () => _speak(letter.name, isEnglish: true),
+                    tooltip: 'Speak in English',
+                  ),
+                ],
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              const Icon(Icons.arrow_right, color: Color(0xFF0088FF)),
+              const SizedBox(width: 8),
               Expanded(
-                flex: 1,
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 300),
-                  decoration: BoxDecoration(
-                    color: _isSpeaking && _currentWord == transliteration
-                        ? Colors.white.withOpacity(0.3)
-                        : Colors.transparent,
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(
-                    _isSpeaking && _currentWord == transliteration
-                        ? Icons.volume_up
-                        : Icons.touch_app,
-                    color: Colors.white,
-                    size: isSmallScreen ? 40 : 48,
-                  ),
+                child: Text(
+                  'Pronunciation in Urdu: ${letter.pronunciation}',
+                  style: const TextStyle(fontSize: 16, color: Colors.white),
                 ),
               ),
             ],
           ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildNumberCard(
-    String number,
-    String transliteration,
-    String meaning,
-    bool isSmallScreen,
-  ) {
-    return Card(
-      elevation: 4,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: InkWell(
-        onTap: () => _speak(transliteration),
-        borderRadius: BorderRadius.circular(16),
-        child: Container(
-          padding: EdgeInsets.all(isSmallScreen ? 12 : 16),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
-            gradient: LinearGradient(
-              colors: [
-                AppTheme.orangeColor,
-                AppTheme.orangeColor.withAlpha(200),
-              ],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-          ),
-          child: Column(
+          const SizedBox(height: 16),
+          Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text(
-                number,
-                style: TextStyle(
-                  fontSize: isSmallScreen ? 48 : 64,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
+              ElevatedButton(
+                onPressed: () {
+                  setState(() {
+                    _selectedIndex = -1;
+                    _selectedLetter = null;
+                  });
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF252550),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 10,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                child: const Text('Close'),
+              ),
+              const SizedBox(width: 16),
+              ElevatedButton.icon(
+                onPressed: () => _playSound(letter),
+                icon: const Icon(Icons.volume_up, size: 18),
+                label: const Text('Urdu'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF0088FF),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 10,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                 ),
               ),
-              const SizedBox(height: 8),
-              Text(
-                transliteration,
-                style: TextStyle(
-                  fontSize: isSmallScreen ? 16 : 20,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
+              const SizedBox(width: 8),
+              ElevatedButton.icon(
+                onPressed: () => _speak(letter.name, isEnglish: true),
+                icon: const Icon(Icons.language, size: 18),
+                label: const Text('English'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.green,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 10,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                 ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                meaning,
-                style: TextStyle(
-                  fontSize: isSmallScreen ? 12 : 14,
-                  color: Colors.white70,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 8),
-              Icon(
-                _isSpeaking && _currentWord == transliteration
-                    ? Icons.volume_up
-                    : Icons.touch_app,
-                color: Colors.white,
-                size: isSmallScreen ? 20 : 24,
               ),
             ],
           ),
-        ),
+        ],
       ),
     );
   }

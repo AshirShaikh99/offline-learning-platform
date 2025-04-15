@@ -24,17 +24,47 @@ class WordFormationScreen extends StatefulWidget {
   State<WordFormationScreen> createState() => _WordFormationScreenState();
 }
 
-class _WordFormationScreenState extends State<WordFormationScreen> {
+class _WordFormationScreenState extends State<WordFormationScreen>
+    with TickerProviderStateMixin {
+  late AnimationController _shakeController;
+  late AnimationController _bounceController;
+  late Animation<double> _bounceAnimation;
+
   int _currentChallengeIndex = 0;
   List<String> _shuffledLetters = [];
   List<String?> _placedLetters = [];
   bool _isCorrect = false;
   bool _showHint = false;
+  String _feedback = '';
+  bool _showSuccess = false;
+  int _hintsUsed = 0;
+  int _correctWords = 0;
 
   @override
   void initState() {
     super.initState();
+    _shakeController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 300),
+    );
+
+    _bounceController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 500),
+    );
+
+    _bounceAnimation = Tween<double>(begin: 0, end: 10).animate(
+      CurvedAnimation(parent: _bounceController, curve: Curves.elasticOut),
+    );
+
     _initializeChallenge();
+  }
+
+  @override
+  void dispose() {
+    _shakeController.dispose();
+    _bounceController.dispose();
+    super.dispose();
   }
 
   void _initializeChallenge() {
@@ -49,6 +79,8 @@ class _WordFormationScreenState extends State<WordFormationScreen> {
 
     _isCorrect = false;
     _showHint = false;
+    _feedback = '';
+    _showSuccess = false;
   }
 
   void _checkAnswer() {
