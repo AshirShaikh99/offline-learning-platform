@@ -660,6 +660,7 @@ class _AddEditCourseScreenState extends State<AddEditCourseScreen> {
             borderRadius: BorderRadius.circular(30),
           ),
           elevation: 0,
+          padding: const EdgeInsets.symmetric(horizontal: 16),
         ),
         child:
             state is CourseLoading
@@ -671,11 +672,16 @@ class _AddEditCourseScreenState extends State<AddEditCourseScreen> {
                     valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                   ),
                 )
-                : Text(
-                  _isEditing ? 'Update Course' : 'Add Course',
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w500,
+                : FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(
+                    _isEditing ? "Update Course" : "Add Course",
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                    ),
+                    textAlign: TextAlign.center,
+                    overflow: TextOverflow.visible,
                   ),
                 ),
       ),
