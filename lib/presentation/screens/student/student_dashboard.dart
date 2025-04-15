@@ -19,17 +19,52 @@ class StudentDashboard extends StatefulWidget {
   State<StudentDashboard> createState() => _StudentDashboardState();
 }
 
-class _StudentDashboardState extends State<StudentDashboard> {
+class _StudentDashboardState extends State<StudentDashboard>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _animationController;
+
   final List<Map<String, dynamic>> _subjects = [
-    {'name': 'English', 'icon': Icons.book, 'color': Colors.blue},
-    {'name': 'Math', 'icon': Icons.calculate, 'color': Colors.red},
-    {'name': 'Science', 'icon': Icons.science, 'color': Colors.green},
-    {'name': 'Social Studies', 'icon': Icons.public, 'color': Colors.orange},
-    {'name': 'Computer', 'icon': Icons.computer, 'color': Colors.purple},
-    {'name': 'Islamiat', 'icon': Icons.mosque, 'color': Colors.teal},
-    {'name': 'GK', 'icon': Icons.psychology, 'color': Colors.brown},
-    {'name': 'Urdu', 'icon': Icons.language, 'color': Colors.indigo},
+    {'name': 'English', 'icon': Icons.book, 'color': const Color(0xFFFF2D95)},
+    {'name': 'Math', 'icon': Icons.calculate, 'color': const Color(0xFF00E5FF)},
+    {
+      'name': 'Science',
+      'icon': Icons.science,
+      'color': const Color(0xFF39FF14),
+    },
+    {
+      'name': 'Social Studies',
+      'icon': Icons.public,
+      'color': const Color(0xFFFFA500),
+    },
+    {
+      'name': 'Computer',
+      'icon': Icons.computer,
+      'color': const Color(0xFFAA00FF),
+    },
+    {
+      'name': 'Islamiat',
+      'icon': Icons.mosque,
+      'color': const Color(0xFF00FFCC),
+    },
+    {'name': 'GK', 'icon': Icons.psychology, 'color': const Color(0xFFFFD700)},
+    {'name': 'Urdu', 'icon': Icons.language, 'color': const Color(0xFF1E90FF)},
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    _animationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 300),
+    );
+    _animationController.forward();
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -50,30 +85,36 @@ class _StudentDashboardState extends State<StudentDashboard> {
         builder: (context, state) {
           if (state is Authenticated) {
             return Scaffold(
-              backgroundColor: const Color(0xFFF8EAC8),
-              body: CustomScrollView(
-                slivers: [
-                  _buildAppBar(isSmallScreen),
-                  SliverToBoxAdapter(
-                    child: _buildWelcomeSection(isSmallScreen, state.user),
-                  ),
-                  // Use SliverMainAxisGroup for better performance
-                  SliverMainAxisGroup(
-                    slivers: [
-                      SliverToBoxAdapter(
-                        child: _buildActivitiesSection(isSmallScreen),
+              backgroundColor: Colors.black,
+              body: SafeArea(
+                child: CustomScrollView(
+                  physics: const BouncingScrollPhysics(),
+                  slivers: [
+                    _buildAppBar(isSmallScreen),
+                    SliverToBoxAdapter(
+                      child: _buildWelcomeSection(isSmallScreen, state.user),
+                    ),
+                    SliverToBoxAdapter(
+                      child: _buildActivitiesSection(isSmallScreen),
+                    ),
+                    SliverPadding(
+                      padding: EdgeInsets.all(isSmallScreen ? 16 : 20),
+                      sliver: _buildSubjectGrid(isSmallScreen),
+                    ),
+                    // Add bottom padding to prevent overflow
+                    SliverToBoxAdapter(
+                      child: SizedBox(
+                        height: MediaQuery.of(context).padding.bottom + 16,
                       ),
-                    ],
-                  ),
-                  SliverPadding(
-                    padding: EdgeInsets.all(isSmallScreen ? 12 : 16),
-                    sliver: _buildSubjectGrid(isSmallScreen),
-                  ),
-                ],
+                    ),
+                  ],
+                ),
               ),
             );
           }
-          return const Center(child: CircularProgressIndicator());
+          return const Center(
+            child: CircularProgressIndicator(color: Color(0xFFFF2D95)),
+          );
         },
       ),
     );
@@ -81,31 +122,69 @@ class _StudentDashboardState extends State<StudentDashboard> {
 
   Widget _buildAppBar(bool isSmallScreen) {
     return SliverAppBar(
-      expandedHeight: isSmallScreen ? 100 : 120,
-      floating: false,
+      expandedHeight: isSmallScreen ? 80 : 100,
+      floating: true,
       pinned: true,
+      stretch: true,
       automaticallyImplyLeading: false,
       backgroundColor: Colors.black,
       flexibleSpace: FlexibleSpaceBar(
         titlePadding: EdgeInsets.only(
-          left: isSmallScreen ? 12 : 16,
-          bottom: isSmallScreen ? 12 : 16,
+          left: isSmallScreen ? 16 : 24,
+          bottom: isSmallScreen ? 16 : 24,
+          right: isSmallScreen ? 16 : 24,
         ),
-        title: Text(
-          'Student Dashboard',
-          style: AppTheme.titleLarge.copyWith(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
-            fontSize: isSmallScreen ? 20 : 24,
-          ),
+        title: LayoutBuilder(
+          builder: (context, constraints) {
+            return Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFF2D95).withOpacity(0.15),
+                    shape: BoxShape.circle,
+                  ),
+                  padding: const EdgeInsets.all(6),
+                  child: Icon(
+                    Icons.school,
+                    color: const Color(0xFFFF2D95),
+                    size: isSmallScreen ? 18 : 22,
+                  ),
+                ),
+                const SizedBox(width: 10),
+                const Flexible(
+                  child: Text(
+                    'Learning Space',
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
+                  ),
+                ),
+              ],
+            );
+          },
         ),
+        stretchModes: const [
+          StretchMode.zoomBackground,
+          StretchMode.blurBackground,
+        ],
       ),
       actions: [
         IconButton(
-          icon: Icon(
-            Icons.logout,
-            color: Colors.white,
-            size: isSmallScreen ? 22 : 24,
+          icon: Container(
+            decoration: BoxDecoration(
+              color: Colors.black.withOpacity(0.3),
+              shape: BoxShape.circle,
+            ),
+            padding: const EdgeInsets.all(4),
+            child: const Icon(
+              Icons.logout_rounded,
+              color: Colors.white,
+              size: 20,
+            ),
           ),
           onPressed: () => context.read<AuthBloc>().add(LogoutEvent()),
         ),
@@ -115,31 +194,86 @@ class _StudentDashboardState extends State<StudentDashboard> {
   }
 
   Widget _buildWelcomeSection(bool isSmallScreen, User user) {
-    return Padding(
-      padding: EdgeInsets.fromLTRB(
-        isSmallScreen ? 12 : 16,
+    return Container(
+      margin: EdgeInsets.fromLTRB(
         isSmallScreen ? 16 : 24,
-        isSmallScreen ? 12 : 16,
-        isSmallScreen ? 12 : 16,
+        isSmallScreen ? 16 : 24,
+        isSmallScreen ? 16 : 24,
+        isSmallScreen ? 16 : 24,
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
+      padding: EdgeInsets.all(isSmallScreen ? 16 : 20),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [Color(0xFF121212), Color(0xFF1A1A1A)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFFFF2D95).withOpacity(0.2),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Row(
         children: [
-          Text(
-            'Welcome ${user.username}',
-            style: AppTheme.headlineMedium.copyWith(
-              color: Colors.black,
-              fontWeight: FontWeight.bold,
-              fontSize: isSmallScreen ? 24 : 28,
+          Container(
+            padding: EdgeInsets.all(isSmallScreen ? 10 : 14),
+            decoration: BoxDecoration(
+              color: const Color(0xFFFF2D95).withOpacity(0.1),
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Icon(
+              Icons.person,
+              color: const Color(0xFFFF2D95),
+              size: isSmallScreen ? 28 : 36,
             ),
           ),
-          SizedBox(height: isSmallScreen ? 6 : 8),
-          Text(
-            'Class: ${user.className}',
-            style: AppTheme.bodyLarge.copyWith(
-              color: Colors.black54,
-              fontSize: isSmallScreen ? 14 : 16,
+          SizedBox(width: isSmallScreen ? 12 : 20),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'Welcome back,',
+                  style: TextStyle(
+                    color: Colors.grey[400],
+                    fontSize: isSmallScreen ? 12 : 14,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  user.username,
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: isSmallScreen ? 18 : 22,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 4),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
+                  ),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFF2D95).withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    'Class ${user.className}',
+                    style: TextStyle(
+                      color: const Color(0xFFFF2D95),
+                      fontSize: isSmallScreen ? 10 : 12,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
         ],
@@ -151,17 +285,34 @@ class _StudentDashboardState extends State<StudentDashboard> {
     return SliverGrid(
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: isSmallScreen ? 2 : 3,
-        childAspectRatio: isSmallScreen ? 1.1 : 1.3,
-        crossAxisSpacing: isSmallScreen ? 12 : 16,
-        mainAxisSpacing: isSmallScreen ? 12 : 16,
+        childAspectRatio: isSmallScreen ? 0.95 : 1.0,
+        crossAxisSpacing: isSmallScreen ? 16 : 20,
+        mainAxisSpacing: isSmallScreen ? 16 : 20,
       ),
       delegate: SliverChildBuilderDelegate((context, index) {
         final subject = _subjects[index];
-        return _buildSubjectCard(
-          subject['name'] as String,
-          subject['icon'] as IconData,
-          subject['color'] as Color,
-          isSmallScreen,
+        return AnimatedBuilder(
+          animation: _animationController,
+          builder: (context, child) {
+            // Staggered animation effect
+            final itemStartTime = index * 0.1;
+            final animationValue = _animationController.value;
+            final itemAnimationValue =
+                animationValue > itemStartTime
+                    ? (animationValue - itemStartTime) / (1 - itemStartTime)
+                    : 0.0;
+
+            return Transform.scale(
+              scale: 0.8 + (0.2 * itemAnimationValue),
+              child: Opacity(opacity: itemAnimationValue, child: child),
+            );
+          },
+          child: _buildSubjectCard(
+            subject['name'] as String,
+            subject['icon'] as IconData,
+            subject['color'] as Color,
+            isSmallScreen,
+          ),
         );
       }, childCount: _subjects.length),
     );
@@ -177,9 +328,10 @@ class _StudentDashboardState extends State<StudentDashboard> {
       builder: (context, state) {
         if (state is Authenticated) {
           return Card(
-            elevation: 0,
+            elevation: 8,
+            color: Colors.transparent,
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(isSmallScreen ? 16 : 20),
+              borderRadius: BorderRadius.circular(24),
             ),
             child: InkWell(
               onTap:
@@ -193,72 +345,98 @@ class _StudentDashboardState extends State<StudentDashboard> {
                           ),
                     ),
                   ),
-              borderRadius: BorderRadius.circular(isSmallScreen ? 16 : 20),
+              borderRadius: BorderRadius.circular(24),
               child: Container(
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
-                    colors: [color, color.withAlpha((0.8 * 255).toInt())],
+                    colors: [color.withOpacity(0.8), color.withOpacity(0.5)],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
-                  borderRadius: BorderRadius.circular(isSmallScreen ? 16 : 20),
+                  borderRadius: BorderRadius.circular(24),
                   boxShadow: [
                     BoxShadow(
-                      color: color.withAlpha((0.2 * 255).toInt()),
-                      blurRadius: isSmallScreen ? 6 : 8,
+                      color: color.withOpacity(0.3),
+                      blurRadius: 10,
+                      spreadRadius: 0,
                       offset: const Offset(0, 4),
                     ),
                   ],
                 ),
                 child: Stack(
                   children: [
+                    // Background pattern
                     Positioned(
-                      right: -20,
-                      bottom: -20,
+                      right: -30,
+                      bottom: -30,
                       child: Icon(
                         icon,
                         size: isSmallScreen ? 80 : 100,
-                        color: Colors.white.withAlpha(51), // 0.2 * 255 = 51
+                        color: Colors.white.withOpacity(0.1),
                       ),
                     ),
+                    // Content
                     Padding(
                       padding: EdgeInsets.all(isSmallScreen ? 16 : 20),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisSize: MainAxisSize.min,
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Icon(
-                            icon,
-                            color: Colors.white,
-                            size: isSmallScreen ? 28 : 32,
-                          ),
-                          const Spacer(),
-                          Text(
-                            subjectName,
-                            style: AppTheme.titleLarge.copyWith(
-                              color: Colors.white,
-                              fontSize: isSmallScreen ? 16 : 18,
-                            ),
-                          ),
-                          SizedBox(height: isSmallScreen ? 6 : 8),
                           Container(
-                            padding: EdgeInsets.symmetric(
-                              horizontal: isSmallScreen ? 10 : 12,
-                              vertical: isSmallScreen ? 4 : 6,
-                            ),
+                            padding: const EdgeInsets.all(10),
                             decoration: BoxDecoration(
-                              color: Colors.white.withAlpha(
-                                51,
-                              ), // 0.2 * 255 = 51
-                              borderRadius: BorderRadius.circular(30),
+                              color: Colors.white.withOpacity(0.2),
+                              borderRadius: BorderRadius.circular(16),
                             ),
-                            child: Text(
-                              'View Content',
-                              style: AppTheme.bodyMedium.copyWith(
-                                color: Colors.white,
-                                fontSize: isSmallScreen ? 10 : 12,
+                            child: Icon(
+                              icon,
+                              color: Colors.white,
+                              size: isSmallScreen ? 20 : 24,
+                            ),
+                          ),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                subjectName,
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: isSmallScreen ? 14 : 18,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                                overflow: TextOverflow.ellipsis,
                               ),
-                            ),
+                              const SizedBox(height: 6),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 10,
+                                  vertical: 4,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withOpacity(0.2),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    const Icon(
+                                      Icons.play_arrow_rounded,
+                                      color: Colors.white,
+                                      size: 14,
+                                    ),
+                                    const SizedBox(width: 2),
+                                    Text(
+                                      'Start Learning',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: isSmallScreen ? 9 : 11,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
                           ),
                         ],
                       ),
@@ -279,23 +457,22 @@ class _StudentDashboardState extends State<StudentDashboard> {
       {
         'title': 'Numbers',
         'icon': Icons.format_list_numbered,
-        'color': AppTheme.primaryColor,
+        'color': const Color(0xFFFF2D95),
         'items': List.generate(10, (index) => {'text': '${index + 1}'}),
       },
       {
         'title': 'Alphabets',
         'icon': Icons.abc,
-        'color': AppTheme.secondaryColor,
+        'color': const Color(0xFF00E5FF),
         'items': List.generate(
           26,
           (index) => {'text': String.fromCharCode(65 + index)},
         ),
       },
-      // Interactive Reading Activities
       {
         'title': 'Reading',
         'icon': Icons.auto_stories,
-        'color': AppTheme.tealColor,
+        'color': const Color(0xFF39FF14),
         'items': [
           {
             'reading': true,
@@ -324,11 +501,10 @@ class _StudentDashboardState extends State<StudentDashboard> {
           },
         ],
       },
-      // Word Formation Activity
       {
         'title': 'Word Formation',
         'icon': Icons.text_fields,
-        'color': AppTheme.purpleColor,
+        'color': const Color(0xFFAA00FF),
         'items': [
           {
             'wordFormation': true,
@@ -343,29 +519,26 @@ class _StudentDashboardState extends State<StudentDashboard> {
           },
         ],
       },
-      // Matching Game Activity
       {
         'title': 'Matching Games',
         'icon': Icons.connect_without_contact,
-        'color': Colors.teal,
+        'color': const Color(0xFF00FFCC),
         'items': [
           {'matching': true, 'title': 'Matching Games'},
         ],
       },
-      // Story Time Activity
       {
         'title': 'Story Time',
         'icon': Icons.auto_stories,
-        'color': Colors.indigo,
+        'color': const Color(0xFFFFD700),
         'items': [
           {'storyTime': true, 'title': 'Interactive Stories'},
         ],
       },
-      // Learn Urdu Activity
       {
         'title': 'Learn Urdu',
         'icon': Icons.language,
-        'color': AppTheme.indigoColor,
+        'color': const Color(0xFF1E90FF),
         'items': [
           {'learnUrdu': true, 'title': 'Learn Urdu with Voice'},
         ],
@@ -373,7 +546,7 @@ class _StudentDashboardState extends State<StudentDashboard> {
       {
         'title': 'Shapes',
         'icon': Icons.category,
-        'color': Colors.orange,
+        'color': const Color(0xFFFFA500),
         'items': [
           {'text': 'Circle', 'icon': Icons.circle_outlined},
           {'text': 'Square', 'icon': Icons.square_outlined},
@@ -388,7 +561,7 @@ class _StudentDashboardState extends State<StudentDashboard> {
       {
         'title': 'Animals',
         'icon': Icons.pets,
-        'color': Colors.purple,
+        'color': const Color(0xFFFF2D95),
         'items': [
           {'text': 'Lion', 'emoji': '🦁'},
           {'text': 'Tiger', 'emoji': '🐯'},
@@ -413,37 +586,48 @@ class _StudentDashboardState extends State<StudentDashboard> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: EdgeInsets.symmetric(horizontal: isSmallScreen ? 12 : 16),
-          child: Text(
-            'Learning Activities',
-            style: AppTheme.titleLarge.copyWith(
-              color: Colors.black,
-              fontWeight: FontWeight.bold,
-              fontSize: isSmallScreen ? 20 : 24,
-            ),
+          padding: EdgeInsets.symmetric(horizontal: isSmallScreen ? 16 : 24),
+          child: Row(
+            children: [
+              const Icon(Icons.explore, color: Color(0xFFFF2D95), size: 20),
+              const SizedBox(width: 8),
+              Text(
+                'Learning Activities',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  fontSize: isSmallScreen ? 16 : 20,
+                ),
+              ),
+            ],
           ),
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 12),
         SizedBox(
           height: isSmallScreen ? 160 : 200,
           child: ListView.builder(
-            padding: EdgeInsets.symmetric(horizontal: isSmallScreen ? 12 : 16),
+            padding: EdgeInsets.symmetric(horizontal: isSmallScreen ? 16 : 24),
             scrollDirection: Axis.horizontal,
+            physics: const BouncingScrollPhysics(),
             itemCount: activities.length,
             itemBuilder: (context, index) {
               final activity = activities[index];
-              return LearningActivityCard(
-                title: activity['title'] as String,
-                icon: activity['icon'] as IconData,
-                color: activity['color'] as Color,
-                items: List<Map<String, dynamic>>.from(
-                  activity['items'] as List,
+              return Padding(
+                padding: const EdgeInsets.only(right: 16),
+                child: LearningActivityCard(
+                  title: activity['title'] as String,
+                  icon: activity['icon'] as IconData,
+                  color: activity['color'] as Color,
+                  items: List<Map<String, dynamic>>.from(
+                    activity['items'] as List,
+                  ),
+                  isSmallScreen: isSmallScreen,
                 ),
-                isSmallScreen: isSmallScreen,
               );
             },
           ),
         ),
+        const SizedBox(height: 8),
       ],
     );
   }
