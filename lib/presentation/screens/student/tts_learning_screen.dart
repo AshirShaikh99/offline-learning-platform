@@ -408,18 +408,6 @@ class _TtsLearningScreenState extends State<TtsLearningScreen> {
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
-                if (isSelected && _isSpeaking)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 4),
-                    child: SizedBox(
-                      width: 16,
-                      height: 16,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        valueColor: AlwaysStoppedAnimation<Color>(widget.color),
-                      ),
-                    ),
-                  ),
               ],
             ),
           ),
