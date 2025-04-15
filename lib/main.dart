@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:uuid/uuid.dart';
+import 'package:flutter_native_splash/flutter_native_splash.dart';
 
 import 'core/theme/app_theme.dart';
 import 'data/datasources/course_local_data_source.dart';
@@ -19,7 +20,9 @@ import 'presentation/blocs/file/file_bloc.dart';
 import 'presentation/screens/login_screen.dart';
 
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
+  // Preserve splash screen until initialization complete
+  WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
+  FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
 
   // Initialize Hive
   await Hive.initFlutter();
@@ -42,6 +45,8 @@ void main() async {
         courseBox: appDependencies.courseBox,
       ),
     );
+    // Remove splash screen when initialization is complete
+    FlutterNativeSplash.remove();
   });
 }
 
