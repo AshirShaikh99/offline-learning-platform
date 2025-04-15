@@ -7,6 +7,7 @@ import 'package:uuid/uuid.dart';
 
 import '../../../core/constants/app_constants.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../core/theme/black_theme.dart';
 import '../../../domain/entities/course.dart';
 import '../../blocs/auth/auth_bloc.dart';
 import '../../blocs/auth/auth_state.dart';
@@ -42,16 +43,16 @@ class _ManageCoursesScreenState extends State<ManageCoursesScreen> {
     final isLargeScreen = screenSize.width >= 1200;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8E8C8),
+      backgroundColor: BlackTheme.backgroundColor,
       appBar: AppBar(
-        backgroundColor: Colors.black,
+        backgroundColor: BlackTheme.backgroundColor,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
           'Manage Courses',
-          style: AppTheme.titleLarge.copyWith(
+          style: TextStyle(
             fontWeight: FontWeight.bold,
             color: Colors.white,
             fontSize: isSmallScreen ? 20 : 24,
@@ -84,8 +85,8 @@ class _ManageCoursesScreenState extends State<ManageCoursesScreen> {
         },
         builder: (context, state) {
           if (state is CourseLoading) {
-            return const Center(
-              child: CircularProgressIndicator(color: Colors.black),
+            return Center(
+              child: CircularProgressIndicator(color: BlackTheme.primaryColor),
             );
           } else if (state is CoursesLoaded) {
             return state.courses.isEmpty
@@ -104,7 +105,7 @@ class _ManageCoursesScreenState extends State<ManageCoursesScreen> {
             ),
           );
         },
-        backgroundColor: Colors.black,
+        backgroundColor: BlackTheme.primaryColor,
         child: Icon(
           Icons.add,
           color: Colors.white,
@@ -129,11 +130,11 @@ class _ManageCoursesScreenState extends State<ManageCoursesScreen> {
         margin: EdgeInsets.all(isSmallScreen ? 16 : 24),
         padding: EdgeInsets.all(isSmallScreen ? 24 : 32),
         decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(30),
+          color: BlackTheme.surfaceColor,
+          borderRadius: BorderRadius.circular(24),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.1),
+              color: BlackTheme.primaryColor.withOpacity(0.2),
               blurRadius: 10,
               offset: const Offset(0, 5),
             ),
@@ -146,7 +147,7 @@ class _ManageCoursesScreenState extends State<ManageCoursesScreen> {
             Icon(
               Icons.book,
               size: isSmallScreen ? 60 : 80,
-              color: Colors.black38,
+              color: BlackTheme.primaryColor.withOpacity(0.5),
             ),
             SizedBox(height: isSmallScreen ? 12 : 16),
             Text(
@@ -154,14 +155,14 @@ class _ManageCoursesScreenState extends State<ManageCoursesScreen> {
               style: TextStyle(
                 fontSize: isSmallScreen ? 16 : 18,
                 fontWeight: FontWeight.bold,
-                color: Colors.black,
+                color: Colors.white,
               ),
             ),
             SizedBox(height: isSmallScreen ? 6 : 8),
             Text(
               'Add a new course by clicking the + button',
               style: TextStyle(
-                color: Colors.grey,
+                color: BlackTheme.subtitleColor,
                 fontSize: isSmallScreen ? 13 : 14,
               ),
               textAlign: TextAlign.center,
@@ -217,15 +218,21 @@ class _ManageCoursesScreenState extends State<ManageCoursesScreen> {
     final tagSize = isSmallScreen ? 11.0 : 12.0;
     final iconButtonSize = isSmallScreen ? 20.0 : 24.0;
 
+    final fileTypeColor =
+        course.fileType == AppConstants.typePdf
+            ? BlackTheme.errorColor
+            : BlackTheme.accentColor;
+
     return Card(
       margin: EdgeInsets.symmetric(
         horizontal: isSmallScreen ? 16 : 24,
         vertical: isSmallScreen ? 8 : 12,
       ),
-      elevation: 0,
+      elevation: 4,
+      color: BlackTheme.cardColor,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(20),
-        side: BorderSide(color: Colors.grey.withOpacity(0.2)),
+        side: BorderSide(color: BlackTheme.dividerColor.withOpacity(0.3)),
       ),
       child: Padding(
         padding: EdgeInsets.all(cardPadding),
@@ -240,20 +247,14 @@ class _ManageCoursesScreenState extends State<ManageCoursesScreen> {
                   width: iconSize,
                   height: iconSize,
                   decoration: BoxDecoration(
-                    color:
-                        course.fileType == AppConstants.typePdf
-                            ? Colors.red.shade50
-                            : Colors.blue.shade50,
+                    color: fileTypeColor.withOpacity(0.15),
                     borderRadius: BorderRadius.circular(15),
                   ),
                   child: Icon(
                     course.fileType == AppConstants.typePdf
                         ? Icons.picture_as_pdf
                         : Icons.flash_on,
-                    color:
-                        course.fileType == AppConstants.typePdf
-                            ? Colors.red
-                            : Colors.blue,
+                    color: fileTypeColor,
                     size: iconSize * 0.5,
                   ),
                 ),
@@ -277,7 +278,7 @@ class _ManageCoursesScreenState extends State<ManageCoursesScreen> {
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
-                          color: Colors.grey[600],
+                          color: BlackTheme.subtitleColor,
                           fontSize: subtitleSize,
                           height: 1.4,
                         ),
@@ -321,14 +322,14 @@ class _ManageCoursesScreenState extends State<ManageCoursesScreen> {
       children: [
         _buildIconButton(
           icon: Icons.edit_outlined,
-          color: Colors.white,
+          color: BlackTheme.accentColor,
           size: iconSize,
           onTap: () => _navigateToEditScreen(course),
         ),
         const SizedBox(width: 8),
         _buildIconButton(
           icon: Icons.delete_outline,
-          color: Colors.red,
+          color: BlackTheme.errorColor,
           size: iconSize,
           onTap: () => _showDeleteConfirmationDialog(course),
         ),
@@ -365,15 +366,15 @@ class _ManageCoursesScreenState extends State<ManageCoursesScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: Colors.grey[100],
+        color: BlackTheme.backgroundColor,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.grey.withOpacity(0.2)),
+        border: Border.all(color: BlackTheme.dividerColor),
       ),
       child: Text(
         text,
         style: TextStyle(
           fontSize: fontSize,
-          color: Colors.black87,
+          color: Colors.white,
           fontWeight: FontWeight.w500,
         ),
       ),
@@ -383,12 +384,22 @@ class _ManageCoursesScreenState extends State<ManageCoursesScreen> {
   Widget _buildAddCourseButton() {
     return Container(
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Colors.black, Color(0xFF333333)],
+        gradient: LinearGradient(
+          colors: [
+            BlackTheme.primaryColor,
+            BlackTheme.primaryColor.withOpacity(0.7),
+          ],
           begin: Alignment.centerLeft,
           end: Alignment.centerRight,
         ),
-        borderRadius: BorderRadius.circular(30),
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: BlackTheme.primaryColor.withOpacity(0.3),
+            blurRadius: 8,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: ElevatedButton.icon(
         onPressed: () => _navigateToAddScreen(),
@@ -405,7 +416,7 @@ class _ManageCoursesScreenState extends State<ManageCoursesScreen> {
           backgroundColor: Colors.transparent,
           shadowColor: Colors.transparent,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(30),
+            borderRadius: BorderRadius.circular(16),
           ),
           elevation: 0,
         ),
@@ -434,16 +445,24 @@ class _ManageCoursesScreenState extends State<ManageCoursesScreen> {
       context: context,
       builder:
           (context) => AlertDialog(
+            backgroundColor: BlackTheme.surfaceColor,
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(20),
+              borderRadius: BorderRadius.circular(16),
             ),
             title: Text(
               'Delete Course',
-              style: TextStyle(fontSize: isSmallScreen ? 18 : 20),
+              style: TextStyle(
+                fontSize: isSmallScreen ? 18 : 20,
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
             ),
             content: Text(
               'Are you sure you want to delete "${course.title}"?',
-              style: TextStyle(fontSize: isSmallScreen ? 14 : 16),
+              style: TextStyle(
+                fontSize: isSmallScreen ? 14 : 16,
+                color: BlackTheme.subtitleColor,
+              ),
             ),
             actions: [
               TextButton(
@@ -451,7 +470,7 @@ class _ManageCoursesScreenState extends State<ManageCoursesScreen> {
                 child: Text(
                   'Cancel',
                   style: TextStyle(
-                    color: Colors.black,
+                    color: BlackTheme.subtitleColor,
                     fontSize: isSmallScreen ? 14 : 16,
                   ),
                 ),
@@ -459,11 +478,14 @@ class _ManageCoursesScreenState extends State<ManageCoursesScreen> {
               Container(
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
-                    colors: [Colors.red.shade700, Colors.red.shade900],
+                    colors: [
+                      BlackTheme.errorColor,
+                      BlackTheme.errorColor.withOpacity(0.7),
+                    ],
                     begin: Alignment.centerLeft,
                     end: Alignment.centerRight,
                   ),
-                  borderRadius: BorderRadius.circular(20),
+                  borderRadius: BorderRadius.circular(16),
                 ),
                 child: TextButton(
                   onPressed: () {

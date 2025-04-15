@@ -3,52 +3,18 @@ import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:uuid/uuid.dart';
 
 import '../../../core/constants/app_constants.dart';
-import '../../../core/theme/app_theme.dart';
 import '../../../domain/entities/course.dart';
-import '../../blocs/auth/auth_bloc.dart';
-import '../../blocs/auth/auth_state.dart';
+import '../../../domain/repositories/course_repository.dart';
 import '../../blocs/course/course_bloc.dart';
 import '../../blocs/course/course_event.dart';
 import '../../blocs/course/course_state.dart';
 
-/// Screen for adding or editing a course
-class AddEditCourseScreen extends StatefulWidget {
-  final Course? course;
-
-  const AddEditCourseScreen({super.key, this.course});
-
-  @override
-  State<AddEditCourseScreen> createState() => _AddEditCourseScreenState();
-}
-
-class _AddEditCourseScreenState extends State<AddEditCourseScreen> {
-  final _formKey = GlobalKey<FormState>();
-  final _titleController = TextEditingController();
-  final _descriptionController = TextEditingController();
-  String? _selectedClass;
-  String? _selectedSubject;
-  String? _selectedFileType;
-  File? _selectedFile;
-  String? _selectedFileName;
-  bool _isEditing = false;
-
-  final List<String> _subjects = [
-    'English',
-    'Math',
-    'Science',
-    'Social Studies',
-    'Computer',
-    'Islamiat',
-    'GK',
-    'Urdu',
-    'Sindhi',
-  ];
-
-  final List<String> _classes = [
-    'Playgroup', // Changed from 'Play Group'
+// This is a placeholder list - replace with your actual classes
+class Classes {
+  static const List<String> values = [
+    'Playgroup',
     'Nursery',
     'KG',
     'Class 1',
@@ -62,22 +28,56 @@ class _AddEditCourseScreenState extends State<AddEditCourseScreen> {
     'Class 9',
     'Class 10',
   ];
+}
+
+// This is a placeholder list - replace with your actual subjects
+class Subjects {
+  static const List<String> values = [
+    'English',
+    'Math',
+    'Science',
+    'Social Studies',
+    'Computer',
+    'Islamiat',
+    'GK',
+    'Urdu',
+    'Sindhi',
+  ];
+}
+
+/// Screen for adding or editing a course
+class AddEditCourseScreen extends StatefulWidget {
+  final Course? course;
+
+  const AddEditCourseScreen({Key? key, this.course}) : super(key: key);
+
+  @override
+  State<AddEditCourseScreen> createState() => _AddEditCourseScreenState();
+}
+
+class _AddEditCourseScreenState extends State<AddEditCourseScreen> {
+  // Controllers
+  late final TextEditingController _titleController;
+  late final TextEditingController _descriptionController;
+  String? _selectedClass;
+  String? _selectedSubject;
+  File? _thumbnail;
+  String? _selectedFilePath;
+  String? _selectedFileName;
+  bool _isEditing = false;
+  String _selectedFileType = AppConstants.typePdf;
 
   @override
   void initState() {
     super.initState();
     _isEditing = widget.course != null;
-    if (_isEditing) {
-      _titleController.text = widget.course!.title;
-      _descriptionController.text = widget.course!.description;
-      _selectedClass = _classes.firstWhere(
-        (c) => c == widget.course!.className,
-        orElse: () => widget.course!.className,
-      );
-      _selectedSubject = widget.course!.subject;
-      _selectedFileType = widget.course!.fileType;
-      _selectedFileName = widget.course!.filePath.split('/').last;
-    }
+    _titleController = TextEditingController(text: widget.course?.title);
+    _descriptionController = TextEditingController(
+      text: widget.course?.description,
+    );
+    _selectedClass = widget.course?.className;
+    _selectedSubject = widget.course?.subject;
+    _selectedFileType = widget.course?.fileType ?? AppConstants.typePdf;
   }
 
   @override
@@ -87,420 +87,485 @@ class _AddEditCourseScreenState extends State<AddEditCourseScreen> {
     super.dispose();
   }
 
+  Future<void> _pickThumbnail() async {
+    FilePickerResult? result = await FilePicker.platform.pickFiles(
+      type: FileType.image,
+    );
+
+    if (result != null) {
+      setState(() {
+        _thumbnail = File(result.files.single.path!);
+      });
+    }
+  }
+
   Future<void> _pickFile() async {
     FilePickerResult? result = await FilePicker.platform.pickFiles(
       type: FileType.custom,
       allowedExtensions:
           _selectedFileType == AppConstants.typePdf
-              ? ['pdf']
-              : ['mp4', 'mov', 'avi', 'mkv'], // Support common video formats
+              ? ['pdf', 'swf']
+              : ['mp4', 'mov', 'avi', 'mkv'],
     );
-
     if (result != null) {
       setState(() {
-        _selectedFile = File(result.files.single.path!);
+        _selectedFilePath = result.files.single.path;
         _selectedFileName = result.files.single.name;
       });
     }
   }
 
   void _saveCourse() {
-    if (_formKey.currentState!.validate()) {
-      if (!_isEditing && _selectedFile == null) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Please select a file')));
-        return;
-      }
+    if (_titleController.text.isEmpty ||
+        _descriptionController.text.isEmpty ||
+        _selectedClass == null ||
+        _selectedSubject == null ||
+        (_thumbnail == null && !_isEditing) ||
+        (_selectedFilePath == null && !_isEditing)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please fill in all fields'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
 
-      final authState = context.read<AuthBloc>().state;
-      if (authState is! Authenticated) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('You must be logged in to add a course'),
-          ),
-        );
-        return;
-      }
+    final DateTime now = DateTime.now();
+    final course = Course(
+      id: widget.course?.id ?? 'course_${now.millisecondsSinceEpoch}',
+      title: _titleController.text,
+      description: _descriptionController.text,
+      className: _selectedClass!,
+      subject: _selectedSubject!,
+      filePath: widget.course?.filePath ?? '',
+      fileType: _selectedFileType,
+      uploadedBy: widget.course?.uploadedBy ?? 'current_user',
+      createdAt: widget.course?.createdAt ?? now,
+      updatedAt: now,
+    );
 
-      if (_isEditing) {
-        final updatedCourse = widget.course!.copyWith(
-          title: _titleController.text.trim(),
-          description: _descriptionController.text.trim(),
-          className: _selectedClass!,
-          subject: _selectedSubject!,
-          fileType: _selectedFileType,
-          updatedAt: DateTime.now(),
-        );
-
-        context.read<CourseBloc>().add(
-          UpdateCourseEvent(course: updatedCourse),
-        );
-      } else {
-        final newCourse = Course(
-          id: const Uuid().v4(),
-          title: _titleController.text.trim(),
-          description: _descriptionController.text.trim(),
-          filePath: '', // This will be set by the repository
-          fileType: _selectedFileType ?? AppConstants.typePdf,
-          className: _selectedClass!,
-          subject: _selectedSubject!,
-          uploadedBy: authState.user.id,
-          createdAt: DateTime.now(),
-          updatedAt: DateTime.now(),
-        );
-
-        context.read<CourseBloc>().add(
-          AddCourseEvent(course: newCourse, file: _selectedFile!),
-        );
-      }
+    if (_isEditing) {
+      context.read<CourseBloc>().add(UpdateCourseEvent(course: course));
+    } else {
+      context.read<CourseBloc>().add(
+        AddCourseEvent(course: course, file: File(_selectedFilePath!)),
+      );
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(
-        0xFFF8E8C8,
-      ), // Match register screen background
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-      ),
-      body: BlocConsumer<CourseBloc, CourseState>(
-        listener: (context, state) {
-          if (state is CourseAdded || state is CourseUpdated) {
-            Navigator.of(context).pop();
-          } else if (state is CourseError) {
-            ScaffoldMessenger.of(
-              context,
-            ).showSnackBar(SnackBar(content: Text('Error: ${state.message}')));
-          }
-        },
-        builder: (context, state) {
-          return Center(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(24),
-              child: Container(
-                width: double.infinity,
-                constraints: const BoxConstraints(
-                  maxWidth: 600, // Maximum width for larger screens
-                ),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(30),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.1),
-                      blurRadius: 10,
-                      offset: const Offset(0, 5),
-                    ),
-                  ],
-                ),
-                padding: const EdgeInsets.all(24),
-                child: Form(
-                  key: _formKey,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        _isEditing ? 'Edit Course' : 'Add New Course',
-                        style: const TextStyle(
-                          fontSize: 28,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black,
-                        ),
-                      ),
-                      const SizedBox(height: 30),
-                      _buildTextField(
-                        controller: _titleController,
-                        hintText: 'Course Title',
-                        icon: Icons.title_outlined,
-                      ),
-                      const SizedBox(height: 16),
-                      _buildTextField(
-                        controller: _descriptionController,
-                        hintText: 'Course Description',
-                        icon: Icons.description_outlined,
-                        maxLines: 3,
-                      ),
-                      const SizedBox(height: 32),
-                      Text(
-                        'Course Details',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black,
-                        ),
-                      ),
-                      const SizedBox(height: 24),
-                      _buildDropdown<String>(
-                        value: _selectedClass,
-                        items: _classes,
-                        hintText: 'Class',
-                        icon: Icons.class_outlined,
-                        onChanged: (value) {
-                          setState(() {
-                            _selectedClass = value;
-                            _selectedSubject =
-                                null; // Reset subject when class changes
-                          });
-                        },
-                        validator:
-                            (value) =>
-                                value == null ? 'Please select a class' : null,
-                        itemBuilder: (item) => item,
-                      ),
-                      const SizedBox(height: 16),
-                      _buildDropdown<String>(
-                        value: _selectedSubject,
-                        items: _subjects,
-                        hintText: 'Subject',
-                        icon: Icons.subject,
-                        onChanged: (value) {
-                          setState(() {
-                            _selectedSubject = value;
-                          });
-                        },
-                        validator:
-                            (value) =>
-                                value == null
-                                    ? 'Please select a subject'
-                                    : null,
-                        itemBuilder: (item) => item,
-                      ),
-                      const SizedBox(height: 32),
-                      Text(
-                        'Course Content',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black,
-                        ),
-                      ),
-                      const SizedBox(height: 24),
-                      _buildDropdown<String>(
-                        value: _selectedFileType,
-                        items: [AppConstants.typePdf, AppConstants.typeVideo],
-                        hintText: 'File Type',
-                        icon: Icons.file_present_outlined,
-                        onChanged: (value) {
-                          setState(() {
-                            _selectedFileType = value;
-                            _selectedFile = null;
-                            _selectedFileName = null;
-                          });
-                        },
-                        validator:
-                            (value) =>
-                                value == null
-                                    ? 'Please select a file type'
-                                    : null,
-                        itemBuilder:
-                            (item) =>
-                                item == AppConstants.typePdf
-                                    ? 'PDF Document'
-                                    : 'Video Content',
-                      ),
-                      const SizedBox(height: 24),
-                      _buildFileUploadSection(),
-                      const SizedBox(height: 40),
-                      _buildSubmitButton(state),
-                    ],
-                  ),
-                ),
-              ),
+    return BlocConsumer<CourseBloc, CourseState>(
+      listener: (context, state) {
+        if (state is CourseAdded) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Course added successfully'),
+              backgroundColor: Colors.green,
             ),
           );
-        },
-      ),
+          Navigator.pop(context);
+        } else if (state is CourseUpdated) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Course updated successfully'),
+              backgroundColor: Colors.green,
+            ),
+          );
+          Navigator.pop(context);
+        } else if (state is CourseError) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(state.message), backgroundColor: Colors.red),
+          );
+        }
+      },
+      builder: (context, state) {
+        return Scaffold(
+          backgroundColor: const Color(0xFF000000),
+          appBar: AppBar(
+            backgroundColor: const Color(0xFF121212),
+            elevation: 0,
+            title: Text(
+              _isEditing ? 'Edit Course' : 'Add New Course',
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            iconTheme: const IconThemeData(color: Colors.white),
+          ),
+          body: SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const SizedBox(height: 16),
+                  _buildTextField(
+                    controller: _titleController,
+                    label: 'Course Title',
+                    icon: Icons.title,
+                  ),
+                  const SizedBox(height: 16),
+                  _buildTextField(
+                    controller: _descriptionController,
+                    label: 'Description',
+                    maxLines: 4,
+                    icon: Icons.description,
+                  ),
+                  const SizedBox(height: 16),
+                  _buildDropdownSection(
+                    title: 'Class',
+                    options: Classes.values,
+                    selectedValue: _selectedClass,
+                    onChanged: (value) {
+                      setState(() {
+                        _selectedClass = value;
+                      });
+                    },
+                    icon: Icons.school,
+                  ),
+                  const SizedBox(height: 16),
+                  _buildDropdownSection(
+                    title: 'Subject',
+                    options: Subjects.values,
+                    selectedValue: _selectedSubject,
+                    onChanged: (value) {
+                      setState(() {
+                        _selectedSubject = value;
+                      });
+                    },
+                    icon: Icons.book,
+                  ),
+                  const SizedBox(height: 24),
+                  _buildFileTypeSelector(),
+                  const SizedBox(height: 24),
+                  _buildThumbnailSelector(),
+                  const SizedBox(height: 24),
+                  _buildFileSelector(),
+                  const SizedBox(height: 32),
+                  _buildSubmitButton(state),
+                  const SizedBox(height: 24),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 
   Widget _buildTextField({
     required TextEditingController controller,
-    required String hintText,
-    required IconData icon,
+    required String label,
     int maxLines = 1,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          hintText,
-          style: const TextStyle(fontSize: 16, color: Colors.grey),
-        ),
-        const SizedBox(height: 8),
-        Container(
-          decoration: BoxDecoration(
-            color: Theme.of(context).cardColor,
-            borderRadius: BorderRadius.circular(30),
-            border: Border.all(color: Colors.grey.withOpacity(0.3)),
-          ),
-          child: TextFormField(
-            controller: controller,
-            maxLines: maxLines,
-            style: const TextStyle(fontSize: 16),
-            decoration: InputDecoration(
-              hintText: hintText,
-              hintStyle: TextStyle(color: Colors.grey.withOpacity(0.7)),
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 20,
-                vertical: 16,
-              ),
-              border: InputBorder.none,
-              focusedBorder: InputBorder.none,
-              enabledBorder: InputBorder.none,
-              errorBorder: InputBorder.none,
-              disabledBorder: InputBorder.none,
-              prefixIcon: Icon(icon, color: Colors.grey),
-              fillColor: Colors.transparent,
-              filled: true,
-            ),
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return 'This field is required';
-              }
-              return null;
-            },
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildDropdown<T>({
-    T? value,
-    required List<T> items,
-    required String hintText,
     required IconData icon,
-    required void Function(T?) onChanged,
-    required String? Function(T?)? validator,
-    required String Function(T) itemBuilder,
   }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          hintText,
-          style: const TextStyle(fontSize: 16, color: Colors.grey),
-        ),
-        const SizedBox(height: 8),
-        Container(
-          decoration: BoxDecoration(
-            color: Theme.of(context).cardColor,
-            borderRadius: BorderRadius.circular(30),
-            border: Border.all(color: Colors.grey.withOpacity(0.3)),
+    return Container(
+      decoration: BoxDecoration(
+        color: const Color(0xFF1E1E1E),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: TextField(
+        controller: controller,
+        maxLines: maxLines,
+        style: const TextStyle(color: Colors.white),
+        decoration: InputDecoration(
+          labelText: label,
+          labelStyle: const TextStyle(color: Color(0xFFB0B0B0)),
+          prefixIcon: Icon(icon, color: const Color(0xFFB0B0B0)),
+          border: InputBorder.none,
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 20,
+            vertical: 20,
           ),
-          padding: const EdgeInsets.symmetric(horizontal: 20),
-          child: DropdownButtonFormField<T>(
-            value: value,
-            isExpanded: true,
-            hint: Text(
-              'Select ${hintText.toLowerCase()}',
-              style: TextStyle(
-                color: Colors.grey.withOpacity(0.7),
-                fontSize: 16,
-              ),
-            ),
-            decoration: InputDecoration(
-              border: InputBorder.none,
-              focusedBorder: InputBorder.none,
-              enabledBorder: InputBorder.none,
-              errorBorder: InputBorder.none,
-              disabledBorder: InputBorder.none,
-              contentPadding: const EdgeInsets.symmetric(vertical: 16),
-              prefixIcon: Icon(icon, color: Colors.grey),
-              fillColor: Colors.transparent,
-              filled: true,
-            ),
-            style: TextStyle(
-              fontSize: 16,
-              color:
-                  Theme.of(context).textTheme.bodyLarge?.color ?? Colors.black,
-            ),
-            dropdownColor: Theme.of(context).cardColor,
-            items:
-                items.map((T item) {
-                  return DropdownMenuItem<T>(
-                    value: item,
-                    child: Text(
-                      itemBuilder(item),
-                      style: TextStyle(
-                        fontSize: 16,
-                        color:
-                            Theme.of(context).textTheme.bodyLarge?.color ??
-                            Colors.black,
-                      ),
-                    ),
-                  );
-                }).toList(),
-            validator: validator,
-            onChanged: onChanged,
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(20),
+            borderSide: const BorderSide(color: Color(0xFFFF2D95), width: 2),
           ),
         ),
-      ],
+      ),
     );
   }
 
-  Widget _buildFileUploadSection() {
+  Widget _buildDropdownSection({
+    required String title,
+    required List<String> options,
+    required String? selectedValue,
+    required Function(String?) onChanged,
+    required IconData icon,
+  }) {
+    return Container(
+      decoration: BoxDecoration(
+        color: const Color(0xFF1E1E1E),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<String>(
+          dropdownColor: const Color(0xFF1E1E1E),
+          isExpanded: true,
+          icon: const Icon(Icons.arrow_drop_down, color: Color(0xFFB0B0B0)),
+          value: selectedValue,
+          hint: Row(
+            children: [
+              Icon(icon, color: const Color(0xFFB0B0B0)),
+              const SizedBox(width: 12),
+              Text(title, style: const TextStyle(color: Color(0xFFB0B0B0))),
+            ],
+          ),
+          onChanged: onChanged,
+          items:
+              options.map<DropdownMenuItem<String>>((String value) {
+                return DropdownMenuItem<String>(
+                  value: value,
+                  child: Row(
+                    children: [
+                      Icon(icon, color: const Color(0xFFB0B0B0)),
+                      const SizedBox(width: 12),
+                      Text(value, style: const TextStyle(color: Colors.white)),
+                    ],
+                  ),
+                );
+              }).toList(),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFileTypeSelector() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text(
-          'Course File',
-          style: TextStyle(fontSize: 16, color: Colors.grey),
+          'File Type',
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+          ),
         ),
         const SizedBox(height: 8),
-        InkWell(
-          onTap: _pickFile,
-          borderRadius: BorderRadius.circular(30),
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-            decoration: BoxDecoration(
-              color: Theme.of(context).cardColor,
-              borderRadius: BorderRadius.circular(30),
-              border: Border.all(
-                color:
-                    _selectedFileName != null
-                        ? Colors.green.withOpacity(0.5)
-                        : Colors.grey.withOpacity(0.3),
+        Row(
+          children: [
+            _buildFileTypeOption(
+              title: 'PDF',
+              value: AppConstants.typePdf,
+              icon: Icons.picture_as_pdf,
+            ),
+            const SizedBox(width: 16),
+            _buildFileTypeOption(
+              title: 'Video',
+              value: AppConstants.typeVideo,
+              icon: Icons.video_library,
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildFileTypeOption({
+    required String title,
+    required String value,
+    required IconData icon,
+  }) {
+    final isSelected = _selectedFileType == value;
+    return Expanded(
+      child: InkWell(
+        onTap: () {
+          setState(() {
+            _selectedFileType = value;
+          });
+        },
+        borderRadius: BorderRadius.circular(16),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          decoration: BoxDecoration(
+            color:
+                isSelected ? const Color(0xFFFF2D95) : const Color(0xFF1E1E1E),
+            borderRadius: BorderRadius.circular(16),
+            border:
+                isSelected ? null : Border.all(color: const Color(0xFF2C2C2C)),
+          ),
+          child: Column(
+            children: [
+              Icon(
+                icon,
+                color: isSelected ? Colors.white : const Color(0xFFB0B0B0),
+                size: 32,
               ),
+              const SizedBox(height: 8),
+              Text(
+                title,
+                style: TextStyle(
+                  color: isSelected ? Colors.white : const Color(0xFFB0B0B0),
+                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildThumbnailSelector() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Course Thumbnail',
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        const SizedBox(height: 8),
+        GestureDetector(
+          onTap: _pickThumbnail,
+          child: Container(
+            height: 200,
+            width: double.infinity,
+            decoration: BoxDecoration(
+              color: const Color(0xFF1E1E1E),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: const Color(0xFF2C2C2C), width: 2),
+            ),
+            child:
+                _thumbnail != null ||
+                        (widget.course?.filePath != null && _isEditing)
+                    ? ClipRRect(
+                      borderRadius: BorderRadius.circular(18),
+                      child:
+                          _thumbnail != null
+                              ? Image.file(_thumbnail!, fit: BoxFit.cover)
+                              : _isEditing
+                              ? Image.network(
+                                widget.course!.filePath,
+                                fit: BoxFit.cover,
+                                loadingBuilder: (
+                                  context,
+                                  child,
+                                  loadingProgress,
+                                ) {
+                                  if (loadingProgress == null) return child;
+                                  return Center(
+                                    child: CircularProgressIndicator(
+                                      value:
+                                          loadingProgress.expectedTotalBytes !=
+                                                  null
+                                              ? loadingProgress
+                                                      .cumulativeBytesLoaded /
+                                                  loadingProgress
+                                                      .expectedTotalBytes!
+                                              : null,
+                                      valueColor:
+                                          const AlwaysStoppedAnimation<Color>(
+                                            Color(0xFFFF2D95),
+                                          ),
+                                    ),
+                                  );
+                                },
+                              )
+                              : null,
+                    )
+                    : Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.image,
+                          size: 48,
+                          color: Colors.grey.withOpacity(0.7),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Tap to select thumbnail',
+                          style: TextStyle(
+                            color: Colors.grey.withOpacity(0.7),
+                            fontSize: 16,
+                          ),
+                        ),
+                      ],
+                    ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildFileSelector() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          _selectedFileType == AppConstants.typePdf ? 'PDF File' : 'Video File',
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        const SizedBox(height: 8),
+        GestureDetector(
+          onTap: _pickFile,
+          child: Container(
+            height: 100,
+            width: double.infinity,
+            decoration: BoxDecoration(
+              color: const Color(0xFF1E1E1E),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: const Color(0xFF2C2C2C), width: 2),
             ),
             child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Row(
-                  children: [
-                    Icon(
-                      _selectedFileName != null
-                          ? Icons.check_circle_outline
-                          : Icons.upload_file_outlined,
-                      color:
-                          _selectedFileName != null
-                              ? Colors.green
-                              : Colors.grey,
+                if (_selectedFileName != null ||
+                    (widget.course?.filePath != null && _isEditing)) ...[
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
                     ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Text(
-                        _selectedFileName ?? 'No file chosen',
-                        style: TextStyle(
-                          color:
-                              _selectedFileName != null
-                                  ? Colors.black
-                                  : Colors.grey.withOpacity(0.7),
-                          fontSize: 16,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFF2D95).withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(
+                          Icons.check_circle,
+                          size: 16,
+                          color: Color(0xFFFF2D95),
                         ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
+                        const SizedBox(width: 8),
+                        Text(
+                          _selectedFileName ??
+                              (widget.course?.filePath.split('/').last ??
+                                  'File selected'),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
+                  ),
+                ],
+                if (_selectedFileName == null &&
+                    (widget.course?.filePath == null || !_isEditing)) ...[
+                  Icon(
+                    _selectedFileType == AppConstants.typePdf
+                        ? Icons.picture_as_pdf
+                        : Icons.video_library,
+                    size: 32,
+                    color: Colors.grey.withOpacity(0.7),
+                  ),
+                ],
                 if (_selectedFileName == null) ...[
                   const SizedBox(height: 8),
                   Container(
@@ -509,22 +574,22 @@ class _AddEditCourseScreenState extends State<AddEditCourseScreen> {
                       vertical: 8,
                     ),
                     decoration: BoxDecoration(
-                      color: Colors.grey.withOpacity(0.1),
+                      color: const Color(0xFF2C2C2C),
                       borderRadius: BorderRadius.circular(20),
                     ),
-                    child: Row(
+                    child: const Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Icon(
                           Icons.touch_app,
                           size: 16,
-                          color: Colors.grey.withOpacity(0.7),
+                          color: Color(0xFFB0B0B0),
                         ),
-                        const SizedBox(width: 8),
+                        SizedBox(width: 8),
                         Text(
                           'Click to choose file',
                           style: TextStyle(
-                            color: Colors.grey.withOpacity(0.7),
+                            color: Color(0xFFB0B0B0),
                             fontSize: 14,
                           ),
                         ),
@@ -532,14 +597,12 @@ class _AddEditCourseScreenState extends State<AddEditCourseScreen> {
                     ),
                   ),
                 ],
-                if (_selectedFileName != null) ...[
+                if (_selectedFileName != null ||
+                    (widget.course?.filePath != null && _isEditing)) ...[
                   const SizedBox(height: 8),
-                  Text(
+                  const Text(
                     'Click to change file',
-                    style: TextStyle(
-                      color: Colors.grey.withOpacity(0.7),
-                      fontSize: 14,
-                    ),
+                    style: TextStyle(color: Color(0xFFB0B0B0), fontSize: 14),
                   ),
                 ],
               ],
@@ -548,10 +611,10 @@ class _AddEditCourseScreenState extends State<AddEditCourseScreen> {
         ),
         const SizedBox(height: 8),
         Text(
-          'Supported formats: ${_selectedFileType == AppConstants.typePdf ? 'PDF/SWF' : 'HTML/SWF'}',
-          style: TextStyle(
+          'Supported formats: ${_selectedFileType == AppConstants.typePdf ? 'PDF/SWF' : 'MP4/MOV/AVI/MKV'}',
+          style: const TextStyle(
             fontSize: 14,
-            color: Colors.grey.withOpacity(0.7),
+            color: Color(0xFF808080),
             fontStyle: FontStyle.italic,
           ),
         ),
@@ -565,11 +628,18 @@ class _AddEditCourseScreenState extends State<AddEditCourseScreen> {
       height: 56,
       decoration: BoxDecoration(
         gradient: const LinearGradient(
-          colors: [Colors.black, Color(0xFF333333)],
+          colors: [Color(0xFFFF2D95), Color(0xFFFF2D55)],
           begin: Alignment.centerLeft,
           end: Alignment.centerRight,
         ),
         borderRadius: BorderRadius.circular(30),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFFFF2D95).withOpacity(0.3),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: ElevatedButton(
         onPressed: state is CourseLoading ? null : _saveCourse,

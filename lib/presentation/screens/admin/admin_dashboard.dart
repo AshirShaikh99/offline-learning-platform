@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../core/theme/app_theme.dart';
+import '../../../core/theme/black_theme.dart';
 import '../../blocs/auth/auth_bloc.dart';
 import '../../blocs/auth/auth_event.dart';
 import '../../blocs/auth/auth_state.dart';
@@ -51,7 +52,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
         }
       },
       child: Scaffold(
-        backgroundColor: const Color(0xFFF8EAC8),
+        backgroundColor: BlackTheme.backgroundColor,
         body: CustomScrollView(
           slivers: [
             _buildAppBar(screenSize),
@@ -76,7 +77,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
       expandedHeight: expandedHeight,
       floating: false,
       pinned: true,
-      backgroundColor: Colors.black,
+      backgroundColor: BlackTheme.backgroundColor,
       flexibleSpace: FlexibleSpaceBar(
         titlePadding: EdgeInsets.only(
           left: isSmallScreen ? 16 : 24,
@@ -84,19 +85,29 @@ class _AdminDashboardState extends State<AdminDashboard> {
         ),
         title: Text(
           'Admin Dashboard',
-          style: AppTheme.titleLarge.copyWith(
+          style: TextStyle(
             color: Colors.white,
             fontWeight: FontWeight.bold,
             fontSize: titleFontSize,
           ),
         ),
         background: Container(
-          decoration: const BoxDecoration(color: Colors.black),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [BlackTheme.backgroundColor, BlackTheme.surfaceColor],
+            ),
+          ),
         ),
       ),
       actions: [
         IconButton(
-          icon: Icon(Icons.logout, color: Colors.white, size: iconSize),
+          icon: Icon(
+            Icons.logout,
+            color: BlackTheme.primaryColor,
+            size: iconSize,
+          ),
           onPressed: () => context.read<AuthBloc>().add(LogoutEvent()),
         ),
         SizedBox(width: isSmallScreen ? 8 : 16),
@@ -122,8 +133,8 @@ class _AdminDashboardState extends State<AdminDashboard> {
         children: [
           Text(
             'Welcome Admin',
-            style: AppTheme.headlineMedium.copyWith(
-              color: Colors.black,
+            style: TextStyle(
+              color: Colors.white,
               fontWeight: FontWeight.bold,
               fontSize: titleSize,
             ),
@@ -131,8 +142,8 @@ class _AdminDashboardState extends State<AdminDashboard> {
           SizedBox(height: isSmallScreen ? 6 : 8),
           Text(
             'Manage your school content',
-            style: AppTheme.bodyLarge.copyWith(
-              color: Colors.black54,
+            style: TextStyle(
+              color: BlackTheme.subtitleColor,
               fontSize: subtitleSize,
             ),
           ),
@@ -151,7 +162,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
       {
         'title': 'Manage Courses',
         'icon': Icons.book,
-        'color': Colors.black,
+        'color': BlackTheme.primaryColor,
         'onTap':
             () => Navigator.of(context).push(
               MaterialPageRoute(
@@ -162,7 +173,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
       {
         'title': 'Upload Statistics',
         'icon': Icons.analytics,
-        'color': Colors.black87,
+        'color': BlackTheme.accentColor,
         'isStats': true,
       },
     ];
@@ -208,10 +219,11 @@ class _AdminDashboardState extends State<AdminDashboard> {
     final buttonTextSize = isSmallScreen ? 12.0 : 14.0;
 
     return Card(
-      elevation: 0,
+      elevation: 8,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(isSmallScreen ? 16 : 20),
       ),
+      color: BlackTheme.surfaceColor,
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(isSmallScreen ? 16 : 20),
@@ -220,7 +232,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: [color, color.withOpacity(0.8)],
+              colors: [BlackTheme.surfaceColor, color.withOpacity(0.2)],
             ),
             borderRadius: BorderRadius.circular(isSmallScreen ? 16 : 20),
             boxShadow: [
@@ -242,7 +254,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
                   child: Icon(
                     icon,
                     size: isSmallScreen ? 80 : 100,
-                    color: Colors.white.withOpacity(0.2),
+                    color: color.withOpacity(0.15),
                   ),
                 ),
               ),
@@ -254,14 +266,15 @@ class _AdminDashboardState extends State<AdminDashboard> {
                     SizedBox(
                       width: iconSize,
                       height: iconSize,
-                      child: Icon(icon, color: Colors.white, size: iconSize),
+                      child: Icon(icon, color: color, size: iconSize),
                     ),
                     const Spacer(),
                     Text(
                       title,
-                      style: AppTheme.titleLarge.copyWith(
+                      style: TextStyle(
                         color: Colors.white,
                         fontSize: titleSize,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
                     SizedBox(height: isSmallScreen ? 6 : 8),
@@ -271,14 +284,15 @@ class _AdminDashboardState extends State<AdminDashboard> {
                         vertical: isSmallScreen ? 4 : 6,
                       ),
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.2),
+                        color: color.withOpacity(0.2),
                         borderRadius: BorderRadius.circular(30),
                       ),
                       child: Text(
                         'Manage',
-                        style: AppTheme.bodyMedium.copyWith(
-                          color: Colors.white,
+                        style: TextStyle(
+                          color: color,
                           fontSize: buttonTextSize,
+                          fontWeight: FontWeight.w500,
                         ),
                       ),
                     ),
@@ -316,18 +330,19 @@ class _AdminDashboardState extends State<AdminDashboard> {
         }
 
         return Card(
-          elevation: 0,
+          elevation: 8,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(
               screenSize.width >= 1200 ? 24 : (isSmallScreen ? 16 : 20),
             ),
           ),
+          color: BlackTheme.surfaceColor,
           child: Container(
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
-                colors: [color, color.withOpacity(0.8)],
+                colors: [BlackTheme.surfaceColor, color.withOpacity(0.2)],
               ),
               borderRadius: BorderRadius.circular(
                 screenSize.width >= 1200 ? 24 : (isSmallScreen ? 16 : 20),
@@ -352,7 +367,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
                         screenSize.width >= 1200
                             ? 140
                             : (isSmallScreen ? 100 : 120),
-                    color: Colors.white.withOpacity(0.2),
+                    color: color.withOpacity(0.15),
                   ),
                 ),
                 Padding(
@@ -360,11 +375,11 @@ class _AdminDashboardState extends State<AdminDashboard> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Icon(icon, color: Colors.white, size: iconSize),
+                      Icon(icon, color: color, size: iconSize),
                       const Spacer(),
                       Text(
                         title,
-                        style: AppTheme.titleLarge.copyWith(
+                        style: TextStyle(
                           color: Colors.white,
                           fontSize: titleSize,
                           fontWeight: FontWeight.bold,
@@ -388,14 +403,15 @@ class _AdminDashboardState extends State<AdminDashboard> {
                                   : (isSmallScreen ? 4 : 6),
                         ),
                         decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.2),
+                          color: color.withOpacity(0.2),
                           borderRadius: BorderRadius.circular(30),
                         ),
                         child: Text(
                           '$uploadCount Files Uploaded',
-                          style: AppTheme.bodyLarge.copyWith(
-                            color: Colors.white.withOpacity(0.9),
+                          style: TextStyle(
+                            color: color,
                             fontSize: statsTextSize,
+                            fontWeight: FontWeight.w500,
                           ),
                         ),
                       ),
