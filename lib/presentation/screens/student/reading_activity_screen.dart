@@ -229,7 +229,7 @@ class _ReadingActivityScreenState extends State<ReadingActivityScreen> {
                       const SizedBox(width: 12),
                       Expanded(
                         child: Text(
-                          page['title'],
+                          page['title'] ?? 'Reading',
                           style: const TextStyle(
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
@@ -242,7 +242,7 @@ class _ReadingActivityScreenState extends State<ReadingActivityScreen> {
                           Icons.volume_up,
                           color: Color(0xFFFF2D95),
                         ),
-                        onPressed: () => _speak(page['content']),
+                        onPressed: () => _speak(page['content'] ?? ''),
                       ),
                     ],
                   ),
@@ -256,7 +256,7 @@ class _ReadingActivityScreenState extends State<ReadingActivityScreen> {
                     ),
                     child: Center(
                       child: Icon(
-                        _getImageIcon(page['image']),
+                        _getImageIcon(page['image'] ?? ''),
                         size: 100,
                         color: const Color(0xFFFF2D95).withOpacity(0.5),
                       ),
@@ -264,7 +264,7 @@ class _ReadingActivityScreenState extends State<ReadingActivityScreen> {
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    page['content'],
+                    page['content'] ?? 'No content available',
                     style: const TextStyle(
                       fontSize: 16,
                       height: 1.5,
@@ -308,6 +308,9 @@ class _ReadingActivityScreenState extends State<ReadingActivityScreen> {
   }
 
   Widget _buildQuestionSection(Map<String, dynamic> question) {
+    final options = question['options'] as List<dynamic>? ?? [];
+    final correctAnswer = question['correctAnswer'] as int? ?? 0;
+
     return Container(
       margin: const EdgeInsets.only(top: 24),
       padding: const EdgeInsets.all(16),
@@ -351,7 +354,7 @@ class _ReadingActivityScreenState extends State<ReadingActivityScreen> {
           ),
           const SizedBox(height: 12),
           Text(
-            question['text'],
+            question['text'] ?? 'No question available',
             style: const TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w500,
@@ -360,11 +363,11 @@ class _ReadingActivityScreenState extends State<ReadingActivityScreen> {
           ),
           const SizedBox(height: 16),
           ...List.generate(
-            question['options'].length,
+            options.length,
             (index) => _buildAnswerOption(
               index,
-              question['options'][index],
-              question['correctAnswer'],
+              options[index]?.toString() ?? 'Option $index',
+              correctAnswer,
             ),
           ),
           if (_showExplanation) ...[
@@ -397,7 +400,7 @@ class _ReadingActivityScreenState extends State<ReadingActivityScreen> {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    question['explanation'],
+                    question['explanation'] ?? 'No explanation available',
                     style: const TextStyle(color: Colors.white, fontSize: 14),
                   ),
                 ],

@@ -59,6 +59,7 @@ class ReadingDemoScreen extends StatelessWidget {
               'title': 'The Friendly Frog',
               'content':
                   'Once upon a time, there was a small green frog named Freddy. Freddy lived in a beautiful pond at the edge of a forest. He loved to hop around and make friends with all the animals.',
+              'image': 'forest',
               'question': {
                 'text': 'Where did Freddy the frog live?',
                 'options': [
@@ -151,6 +152,7 @@ class ReadingDemoScreen extends StatelessWidget {
               'title': 'The Deep Blue Sea',
               'content':
                   'The ocean covers more than 70% of Earth\'s surface. It is home to millions of different types of plants and animals. Some parts of the ocean are so deep that sunlight cannot reach them!',
+              'image': 'forest',
               'question': {
                 'text': 'How much of Earth\'s surface is covered by oceans?',
                 'options': [
