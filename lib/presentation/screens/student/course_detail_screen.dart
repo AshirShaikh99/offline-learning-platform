@@ -489,6 +489,11 @@ class _CourseDetailScreenState extends State<CourseDetailScreen>
   }
 
   Widget _buildActionButton() {
+    // Don't show the action button for videos
+    if (widget.course.fileType == 'video') {
+      return const SizedBox.shrink(); // This will hide the button for video content
+    }
+
     return SizedBox(
       width: double.infinity,
       child: ElevatedButton(
@@ -547,8 +552,6 @@ class _CourseDetailScreenState extends State<CourseDetailScreen>
     switch (type) {
       case 'pdf':
         return 'Open PDF Document';
-      case 'video':
-        return 'Watch Video';
       case 'html':
         return 'Open Interactive Content';
       default:

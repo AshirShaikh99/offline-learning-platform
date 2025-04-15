@@ -401,17 +401,8 @@ class _ManageCoursesScreenState extends State<ManageCoursesScreen> {
           ),
         ],
       ),
-      child: ElevatedButton.icon(
+      child: ElevatedButton(
         onPressed: () => _navigateToAddScreen(),
-        icon: const Icon(Icons.add, color: Colors.white),
-        label: const Text(
-          'Add Course',
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 16,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
         style: ElevatedButton.styleFrom(
           backgroundColor: Colors.transparent,
           shadowColor: Colors.transparent,
@@ -419,6 +410,23 @@ class _ManageCoursesScreenState extends State<ManageCoursesScreen> {
             borderRadius: BorderRadius.circular(16),
           ),
           elevation: 0,
+          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: const [
+            Icon(Icons.add, color: Colors.white, size: 20),
+            SizedBox(width: 8),
+            Text(
+              'Add Course',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
         ),
       ),
     );
