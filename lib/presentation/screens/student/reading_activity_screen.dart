@@ -560,6 +560,20 @@ class _ReadingActivityScreenState extends State<ReadingActivityScreen> {
         return Icons.forest;
       case 'turtle':
         return Icons.pets;
+      case 'frog':
+        return Icons.pets;
+      case 'bird':
+        return Icons.flutter_dash;
+      case 'heart':
+        return Icons.favorite;
+      case 'ocean':
+        return Icons.water;
+      case 'octopus':
+        return Icons.attractions;
+      case 'coral':
+        return Icons.bubble_chart;
+      case 'whale':
+        return Icons.water_rounded;
       default:
         return Icons.image;
     }

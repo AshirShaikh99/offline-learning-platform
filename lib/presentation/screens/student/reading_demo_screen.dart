@@ -59,7 +59,7 @@ class ReadingDemoScreen extends StatelessWidget {
               'title': 'The Friendly Frog',
               'content':
                   'Once upon a time, there was a small green frog named Freddy. Freddy lived in a beautiful pond at the edge of a forest. He loved to hop around and make friends with all the animals.',
-              'image': 'forest',
+              'image': 'frog',
               'question': {
                 'text': 'Where did Freddy the frog live?',
                 'options': [
@@ -79,6 +79,7 @@ class ReadingDemoScreen extends StatelessWidget {
               'title': 'Making Friends',
               'content':
                   'One sunny day, Freddy saw a rabbit who looked sad. "Hello! Why are you sad?" asked Freddy. "I have no one to play with," said the rabbit. "I will play with you!" said Freddy. They played all day and became good friends.',
+              'image': 'friends',
               'question': {
                 'text': 'Why was the rabbit sad?',
                 'options': [
@@ -98,6 +99,7 @@ class ReadingDemoScreen extends StatelessWidget {
               'title': 'A New Problem',
               'content':
                   'The next day, Freddy and the rabbit saw a bird with a broken wing. "We need to help!" said Freddy. They carefully made a nest for the bird and brought it food. The bird was very thankful for their kindness.',
+              'image': 'bird',
               'question': {
                 'text': 'What problem did the bird have?',
                 'options': [
@@ -116,6 +118,7 @@ class ReadingDemoScreen extends StatelessWidget {
               'title': 'The Happy Ending',
               'content':
                   'After a few weeks, the bird\'s wing was better. "Thank you for helping me," said the bird. "You are welcome," said Freddy. "That\'s what friends do!" From that day on, the frog, the rabbit, and the bird were the best of friends and played together every day.',
+              'image': 'heart',
               'question': {
                 'text': 'What is the main lesson of this story?',
                 'options': [
@@ -152,7 +155,7 @@ class ReadingDemoScreen extends StatelessWidget {
               'title': 'The Deep Blue Sea',
               'content':
                   'The ocean covers more than 70% of Earth\'s surface. It is home to millions of different types of plants and animals. Some parts of the ocean are so deep that sunlight cannot reach them!',
-              'image': 'forest',
+              'image': 'ocean',
               'question': {
                 'text': 'How much of Earth\'s surface is covered by oceans?',
                 'options': [
@@ -172,6 +175,7 @@ class ReadingDemoScreen extends StatelessWidget {
               'title': 'Amazing Octopus',
               'content':
                   'The octopus is one of the smartest animals in the ocean. It has three hearts and blue blood! Octopuses can change color to hide from predators. They can also squeeze through very small spaces because they have no bones.',
+              'image': 'octopus',
               'question': {
                 'text': 'How many hearts does an octopus have?',
                 'options': ['One', 'Two', 'Three', 'Four'],
@@ -185,6 +189,7 @@ class ReadingDemoScreen extends StatelessWidget {
               'title': 'Coral Reefs',
               'content':
                   'Coral reefs are like underwater cities. They are made up of tiny animals called coral polyps. Many fish and other sea creatures live in coral reefs. They are very colorful and beautiful, but they are in danger because of pollution and climate change.',
+              'image': 'coral',
               'question': {
                 'text': 'What are coral reefs made of?',
                 'options': [
@@ -204,6 +209,7 @@ class ReadingDemoScreen extends StatelessWidget {
               'title': 'Ocean Giants',
               'content':
                   'The blue whale is the largest animal ever known to have lived on Earth. It can grow up to 100 feet long and weigh as much as 200 tons! Blue whales eat tiny shrimp-like animals called krill. A blue whale can eat up to 4 tons of krill in a single day.',
+              'image': 'whale',
               'question': {
                 'text': 'What do blue whales eat?',
                 'options': ['Fish', 'Krill', 'Seaweed', 'Other whales'],
