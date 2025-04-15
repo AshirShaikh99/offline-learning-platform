@@ -15,6 +15,7 @@ class AppTheme {
   static Color get orangeColor => const Color(0xFFFF9800); // Orange
   static Color get tealColor => const Color(0xFF009688); // Teal
   static Color get blueColor => const Color(0xFF2196F3); // Blue
+  static Color get indigoColor => const Color(0xFF3F51B5); // Indigo
 
   // Text Styles
   static TextStyle get headlineLarge => const TextStyle(

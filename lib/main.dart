@@ -18,51 +18,54 @@ import 'presentation/blocs/course/course_bloc.dart';
 import 'presentation/blocs/file/file_bloc.dart';
 import 'presentation/screens/login_screen.dart';
 
-void main() {
-  // Show a loading indicator immediately
-  runApp(const LoadingApp());
-
-  // Initialize the app in the background
-  initializeApp();
-}
-
-class LoadingApp extends StatelessWidget {
-  const LoadingApp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: Scaffold(
-        body: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const CircularProgressIndicator(),
-              const SizedBox(height: 16),
-              Text('Loading...', style: TextStyle(fontSize: 16)),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-Future<void> initializeApp() async {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   // Initialize Hive
   await Hive.initFlutter();
 
-  // Register adapters
+  // Register adapters - this must happen before opening boxes
   Hive.registerAdapter(UserModelAdapter());
   Hive.registerAdapter(CourseModelAdapter());
 
-  // Open boxes
-  final userBox = await Hive.openBox<UserModel>('users');
-  final courseBox = await Hive.openBox<CourseModel>('courses');
+  // Open only the essential box first (user settings)
   final settingsBox = await Hive.openBox<String>('settings');
+
+  runApp(MyApp.loading(settingsBox));
+
+  // Continue initialization in the background
+  _completeInitialization().then((appDependencies) {
+    runApp(
+      MyApp(
+        userRepository: appDependencies.userRepository,
+        courseRepository: appDependencies.courseRepository,
+        courseBox: appDependencies.courseBox,
+      ),
+    );
+  });
+}
+
+class AppDependencies {
+  final UserRepository userRepository;
+  final CourseRepository courseRepository;
+  final Box<CourseModel> courseBox;
+
+  AppDependencies({
+    required this.userRepository,
+    required this.courseRepository,
+    required this.courseBox,
+  });
+}
+
+Future<AppDependencies> _completeInitialization() async {
+  // Open remaining boxes in parallel
+  final futures = await Future.wait([
+    Hive.openBox<UserModel>('users'),
+    Hive.openBox<CourseModel>('courses'),
+  ]);
+
+  final userBox = futures[0] as Box<UserModel>;
+  final courseBox = futures[1] as Box<CourseModel>;
 
   // Create UUID instance
   final uuid = Uuid();
@@ -70,7 +73,7 @@ Future<void> initializeApp() async {
   // Create data sources
   final userLocalDataSource = UserLocalDataSourceImpl(
     userBox: userBox,
-    settingsBox: settingsBox,
+    settingsBox: await Hive.openBox<String>('settings'),
     uuid: uuid,
   );
 
@@ -88,206 +91,236 @@ Future<void> initializeApp() async {
     localDataSource: courseLocalDataSource,
   );
 
-  // Launch the actual app
-  runApp(
-    MyApp(
-      userRepository: userRepository,
-      courseRepository: courseRepository,
-      courseBox: courseBox,
-    ),
+  return AppDependencies(
+    userRepository: userRepository,
+    courseRepository: courseRepository,
+    courseBox: courseBox,
   );
 }
 
 class MyApp extends StatelessWidget {
-  final UserRepository userRepository;
-  final CourseRepository courseRepository;
-  final Box<CourseModel> courseBox;
+  final UserRepository? userRepository;
+  final CourseRepository? courseRepository;
+  final Box<CourseModel>? courseBox;
+  final bool isLoading;
+  final Box<String>? settingsBox;
 
   const MyApp({
     super.key,
     required this.userRepository,
     required this.courseRepository,
     required this.courseBox,
-  });
+  }) : isLoading = false,
+       settingsBox = null;
+
+  const MyApp.loading(this.settingsBox, {super.key})
+    : userRepository = null,
+      courseRepository = null,
+      courseBox = null,
+      isLoading = true;
 
   @override
   Widget build(BuildContext context) {
+    if (isLoading) {
+      return MaterialApp(
+        debugShowCheckedModeBanner: false,
+        title: 'Edutech',
+        theme: _buildLightTheme(),
+        darkTheme: _buildDarkTheme(),
+        themeMode: ThemeMode.system,
+        home: const Scaffold(
+          body: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                CircularProgressIndicator(),
+                SizedBox(height: 16),
+                Text('Loading...', style: TextStyle(fontSize: 16)),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
     return MultiBlocProvider(
       providers: [
         BlocProvider<AuthBloc>(
           create:
               (context) =>
-                  AuthBloc(userRepository: userRepository)
+                  AuthBloc(userRepository: userRepository!)
                     ..add(CheckAuthStatusEvent()),
         ),
         BlocProvider<CourseBloc>(
-          create: (context) => CourseBloc(courseRepository: courseRepository),
+          create: (context) => CourseBloc(courseRepository: courseRepository!),
         ),
         BlocProvider<FileBloc>(
-          create: (context) => FileBloc(courseBox: courseBox),
+          create: (context) => FileBloc(courseBox: courseBox!),
         ),
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
         title: 'Edutech',
-        // Enable Material 3
-        theme: ThemeData(
-          useMaterial3: true,
-          colorScheme: ColorScheme.fromSeed(
-            seedColor: AppTheme.primaryColor,
-            brightness: Brightness.light,
-          ),
-          // Typography
-          textTheme: TextTheme(
-            displayLarge: AppTheme.headlineLarge,
-            displayMedium: AppTheme.headlineMedium,
-            titleLarge: AppTheme.titleLarge,
-            bodyLarge: AppTheme.bodyLarge,
-            bodyMedium: AppTheme.bodyMedium,
-            labelLarge: AppTheme.labelLarge,
-          ),
-          // Component themes
-          appBarTheme: AppBarTheme(
-            centerTitle: true,
-            backgroundColor: Colors.transparent,
-            elevation: 0,
-            foregroundColor: AppTheme.primaryColor,
-            titleTextStyle: AppTheme.titleLarge.copyWith(
-              color: AppTheme.primaryColor,
-            ),
-          ),
-          cardTheme: CardTheme(
-            elevation: 0,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-            ),
-            color: Colors.white,
-          ),
-          inputDecorationTheme: InputDecorationTheme(
-            filled: true,
-            fillColor: Colors.grey[50],
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide.none,
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide.none,
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: AppTheme.primaryColor, width: 1.5),
-            ),
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 16,
-              vertical: 16,
-            ),
-          ),
-          elevatedButtonTheme: ElevatedButtonThemeData(
-            style: ElevatedButton.styleFrom(
-              elevation: 0,
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-          ),
-          filledButtonTheme: FilledButtonThemeData(
-            style: FilledButton.styleFrom(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-          ),
-          outlinedButtonTheme: OutlinedButtonThemeData(
-            style: OutlinedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-          ),
-        ),
-        // Dark theme
-        darkTheme: ThemeData(
-          useMaterial3: true,
-          colorScheme: ColorScheme.fromSeed(
-            seedColor: AppTheme.primaryColor,
-            brightness: Brightness.dark,
-          ),
-          // Typography
-          textTheme: TextTheme(
-            displayLarge: AppTheme.headlineLarge,
-            displayMedium: AppTheme.headlineMedium,
-            titleLarge: AppTheme.titleLarge,
-            bodyLarge: AppTheme.bodyLarge,
-            bodyMedium: AppTheme.bodyMedium,
-            labelLarge: AppTheme.labelLarge,
-          ),
-          // Component themes
-          appBarTheme: AppBarTheme(
-            centerTitle: true,
-            backgroundColor: Colors.transparent,
-            elevation: 0,
-            foregroundColor: Colors.white,
-            titleTextStyle: AppTheme.titleLarge.copyWith(color: Colors.white),
-          ),
-          cardTheme: CardTheme(
-            elevation: 0,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-            ),
-            color: const Color(0xFF1E1E1E),
-          ),
-          inputDecorationTheme: InputDecorationTheme(
-            filled: true,
-            fillColor: const Color(0xFF2C2C2C),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide.none,
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide.none,
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: AppTheme.primaryColor, width: 1.5),
-            ),
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 16,
-              vertical: 16,
-            ),
-          ),
-          elevatedButtonTheme: ElevatedButtonThemeData(
-            style: ElevatedButton.styleFrom(
-              elevation: 0,
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-          ),
-          filledButtonTheme: FilledButtonThemeData(
-            style: FilledButton.styleFrom(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-          ),
-          outlinedButtonTheme: OutlinedButtonThemeData(
-            style: OutlinedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-          ),
-        ),
+        theme: _buildLightTheme(),
+        darkTheme: _buildDarkTheme(),
         themeMode: ThemeMode.system,
         home: const LoginScreen(),
+      ),
+    );
+  }
+
+  ThemeData _buildLightTheme() {
+    return ThemeData(
+      useMaterial3: true,
+      colorScheme: ColorScheme.fromSeed(
+        seedColor: AppTheme.primaryColor,
+        brightness: Brightness.light,
+      ),
+      // Typography
+      textTheme: TextTheme(
+        displayLarge: AppTheme.headlineLarge,
+        displayMedium: AppTheme.headlineMedium,
+        titleLarge: AppTheme.titleLarge,
+        bodyLarge: AppTheme.bodyLarge,
+        bodyMedium: AppTheme.bodyMedium,
+        labelLarge: AppTheme.labelLarge,
+      ),
+      // Component themes
+      appBarTheme: AppBarTheme(
+        centerTitle: true,
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        foregroundColor: AppTheme.primaryColor,
+        titleTextStyle: AppTheme.titleLarge.copyWith(
+          color: AppTheme.primaryColor,
+        ),
+      ),
+      cardTheme: CardTheme(
+        elevation: 0,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        color: Colors.white,
+      ),
+      inputDecorationTheme: InputDecorationTheme(
+        filled: true,
+        fillColor: Colors.grey[50],
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide.none,
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide.none,
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: AppTheme.primaryColor, width: 1.5),
+        ),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 16,
+        ),
+      ),
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ElevatedButton.styleFrom(
+          elevation: 0,
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ),
+      ),
+      filledButtonTheme: FilledButtonThemeData(
+        style: FilledButton.styleFrom(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ),
+      ),
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ),
+      ),
+    );
+  }
+
+  ThemeData _buildDarkTheme() {
+    return ThemeData(
+      useMaterial3: true,
+      colorScheme: ColorScheme.fromSeed(
+        seedColor: AppTheme.primaryColor,
+        brightness: Brightness.dark,
+      ),
+      // Typography
+      textTheme: TextTheme(
+        displayLarge: AppTheme.headlineLarge,
+        displayMedium: AppTheme.headlineMedium,
+        titleLarge: AppTheme.titleLarge,
+        bodyLarge: AppTheme.bodyLarge,
+        bodyMedium: AppTheme.bodyMedium,
+        labelLarge: AppTheme.labelLarge,
+      ),
+      // Component themes
+      appBarTheme: AppBarTheme(
+        centerTitle: true,
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        foregroundColor: Colors.white,
+        titleTextStyle: AppTheme.titleLarge.copyWith(color: Colors.white),
+      ),
+      cardTheme: CardTheme(
+        elevation: 0,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        color: const Color(0xFF1E1E1E),
+      ),
+      inputDecorationTheme: InputDecorationTheme(
+        filled: true,
+        fillColor: const Color(0xFF2C2C2C),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide.none,
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide.none,
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: AppTheme.primaryColor, width: 1.5),
+        ),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 16,
+        ),
+      ),
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ElevatedButton.styleFrom(
+          elevation: 0,
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ),
+      ),
+      filledButtonTheme: FilledButtonThemeData(
+        style: FilledButton.styleFrom(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ),
+      ),
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ),
       ),
     );
   }

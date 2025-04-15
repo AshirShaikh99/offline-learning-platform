@@ -7,6 +7,8 @@ import '../../blocs/auth/auth_bloc.dart';
 import '../../blocs/auth/auth_event.dart';
 import '../../blocs/auth/auth_state.dart';
 import 'content_viewer_screen.dart';
+import 'learn_urdu_screen.dart';
+import 'learn_sindhi_screen.dart';
 import '../../widgets/learning_activity_card.dart';
 
 /// Student dashboard screen
@@ -347,6 +349,24 @@ class _StudentDashboardState extends State<StudentDashboard> {
         'color': Colors.indigo,
         'items': [
           {'storyTime': true, 'title': 'Interactive Stories'},
+        ],
+      },
+      // Learn Urdu Activity
+      {
+        'title': 'Learn Urdu',
+        'icon': Icons.language,
+        'color': AppTheme.indigoColor,
+        'items': [
+          {'learnUrdu': true, 'title': 'Learn Urdu with Voice'},
+        ],
+      },
+      // Learn Sindhi Activity
+      {
+        'title': 'Learn Sindhi',
+        'icon': Icons.record_voice_over,
+        'color': AppTheme.orangeColor,
+        'items': [
+          {'learnSindhi': true, 'title': 'Learn Sindhi with Voice'},
         ],
       },
       // Add new spelling activity
