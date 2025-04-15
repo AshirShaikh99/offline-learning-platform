@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:audioplayers/audioplayers.dart';
+import '../../../services/audio_service.dart';
 
 import '../../../core/theme/app_theme.dart';
 
@@ -14,9 +14,7 @@ class LearnSindhiScreen extends StatefulWidget {
 
 class _LearnSindhiScreenState extends State<LearnSindhiScreen>
     with SingleTickerProviderStateMixin {
-  final AudioPlayer _audioPlayer = AudioPlayer();
-  bool _isPlaying = false;
-  String _currentSound = '';
+  final AudioService _audioService = AudioService();
   late TabController _tabController;
 
   // List of Sindhi letters with their transliterations and audio paths
@@ -189,53 +187,23 @@ class _LearnSindhiScreenState extends State<LearnSindhiScreen>
   void initState() {
     super.initState();
     _tabController = TabController(length: 4, vsync: this);
-    _setupAudioPlayer();
+    _audioService.initialize();
   }
 
   @override
   void dispose() {
-    _audioPlayer.dispose();
+    // Stop any playing audio before disposing
+    _audioService.stopAudio();
     _tabController.dispose();
     super.dispose();
   }
 
-  Future<void> _setupAudioPlayer() async {
-    _audioPlayer.onPlayerComplete.listen((event) {
-      setState(() {
-        _isPlaying = false;
-      });
-    });
-  }
-
   Future<void> _playSound(String audioPath) async {
-    if (_isPlaying) {
-      await _audioPlayer.stop();
-      setState(() {
-        _isPlaying = false;
-      });
-
-      if (_currentSound == audioPath) {
-        return;
-      }
-    }
-
-    setState(() {
-      _isPlaying = true;
-      _currentSound = audioPath;
-    });
-
     HapticFeedback.mediumImpact();
-
-    try {
-      await _audioPlayer.play(
-        AssetSource(audioPath.replaceFirst('assets/', '')),
-      );
-    } catch (e) {
-      debugPrint('Error playing sound: $e');
-      setState(() {
-        _isPlaying = false;
-      });
-    }
+    await _audioService.playAsset(audioPath);
+    setState(() {
+      // Update UI when audio state changes
+    });
   }
 
   @override
@@ -375,7 +343,8 @@ class _LearnSindhiScreenState extends State<LearnSindhiScreen>
     String audioPath,
     bool isSmallScreen,
   ) {
-    final isCurrentlyPlaying = _isPlaying && _currentSound == audioPath;
+    final isCurrentlyPlaying =
+        _audioService.isPlaying && _audioService.currentSound == audioPath;
 
     return Card(
       elevation: 4,
@@ -456,7 +425,8 @@ class _LearnSindhiScreenState extends State<LearnSindhiScreen>
     String audioPath,
     bool isSmallScreen,
   ) {
-    final isCurrentlyPlaying = _isPlaying && _currentSound == audioPath;
+    final isCurrentlyPlaying =
+        _audioService.isPlaying && _audioService.currentSound == audioPath;
 
     return Card(
       elevation: 4,
@@ -542,7 +512,8 @@ class _LearnSindhiScreenState extends State<LearnSindhiScreen>
     String audioPath,
     bool isSmallScreen,
   ) {
-    final isCurrentlyPlaying = _isPlaying && _currentSound == audioPath;
+    final isCurrentlyPlaying =
+        _audioService.isPlaying && _audioService.currentSound == audioPath;
 
     return Card(
       elevation: 4,
@@ -623,7 +594,8 @@ class _LearnSindhiScreenState extends State<LearnSindhiScreen>
     String audioPath,
     bool isSmallScreen,
   ) {
-    final isCurrentlyPlaying = _isPlaying && _currentSound == audioPath;
+    final isCurrentlyPlaying =
+        _audioService.isPlaying && _audioService.currentSound == audioPath;
 
     return Card(
       elevation: 4,

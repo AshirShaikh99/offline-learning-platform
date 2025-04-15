@@ -8,7 +8,6 @@ import '../../blocs/auth/auth_event.dart';
 import '../../blocs/auth/auth_state.dart';
 import 'content_viewer_screen.dart';
 import 'learn_urdu_screen.dart';
-import 'learn_sindhi_screen.dart';
 import '../../widgets/learning_activity_card.dart';
 
 /// Student dashboard screen
@@ -29,7 +28,6 @@ class _StudentDashboardState extends State<StudentDashboard> {
     {'name': 'Islamiat', 'icon': Icons.mosque, 'color': Colors.teal},
     {'name': 'GK', 'icon': Icons.psychology, 'color': Colors.brown},
     {'name': 'Urdu', 'icon': Icons.language, 'color': Colors.indigo},
-    {'name': 'Sindhi', 'icon': Icons.translate, 'color': Colors.deepOrange},
   ];
 
   @override
@@ -358,32 +356,6 @@ class _StudentDashboardState extends State<StudentDashboard> {
         'color': AppTheme.indigoColor,
         'items': [
           {'learnUrdu': true, 'title': 'Learn Urdu with Voice'},
-        ],
-      },
-      // Learn Sindhi Activity
-      {
-        'title': 'Learn Sindhi',
-        'icon': Icons.record_voice_over,
-        'color': AppTheme.orangeColor,
-        'items': [
-          {'learnSindhi': true, 'title': 'Learn Sindhi with Voice'},
-        ],
-      },
-      // Add new spelling activity
-      {
-        'title': 'Spelling Game',
-        'icon': Icons.drag_indicator,
-        'color': Colors.pink,
-        'isSpellingGame': true,
-        'items': [
-          {'word': 'CAT', 'hint': 'A furry pet that says meow'},
-          {'word': 'DOG', 'hint': 'A loyal pet that barks'},
-          {'word': 'BALL', 'hint': 'A round toy you can throw'},
-          {'word': 'BOOK', 'hint': 'You read stories in it'},
-          {'word': 'TREE', 'hint': 'Grows tall and has leaves'},
-          {'word': 'FISH', 'hint': 'Swims in water'},
-          {'word': 'STAR', 'hint': 'Twinkles in the night sky'},
-          {'word': 'BIRD', 'hint': 'Has wings and can fly'},
         ],
       },
       {

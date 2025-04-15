@@ -3,13 +3,13 @@ import '../../../core/theme/app_theme.dart';
 import '../screens/student/flame_spelling_game_screen.dart';
 import '../screens/student/learning_activity_screen.dart';
 import '../screens/student/matching_game_demo_screen.dart';
+import '../screens/student/numbers_activity_screen.dart';
 import '../screens/student/reading_activity_screen.dart';
 import '../screens/student/reading_demo_screen.dart';
 import '../screens/student/story_time_screen.dart';
 import '../screens/student/word_formation_screen.dart';
 import '../screens/student/word_formation_demo_screen.dart';
 import '../screens/student/learn_urdu_screen.dart';
-import '../screens/student/learn_sindhi_screen.dart';
 
 class LearningActivityCard extends StatelessWidget {
   final String title;
@@ -35,7 +35,14 @@ class LearningActivityCard extends StatelessWidget {
           context,
           MaterialPageRoute(
             builder: (context) {
-              if (items.first.containsKey('word')) {
+              if (title == 'Numbers') {
+                // Navigate to Numbers screen with English pronunciation
+                return NumbersActivityScreen(
+                  title: title,
+                  color: color,
+                  items: items,
+                );
+              } else if (items.first.containsKey('word')) {
                 // Navigate to Flame spelling game
                 return FlameSpellingGameScreen(
                   words: List<Map<String, String>>.from(items),
@@ -80,9 +87,6 @@ class LearningActivityCard extends StatelessWidget {
               } else if (items.first.containsKey('learnUrdu')) {
                 // Navigate to Learn Urdu screen
                 return const LearnUrduScreen();
-              } else if (items.first.containsKey('learnSindhi')) {
-                // Navigate to Learn Sindhi screen
-                return const LearnSindhiScreen();
               }
               // Handle other activities
               return LearningActivityScreen(

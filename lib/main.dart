@@ -18,6 +18,7 @@ import 'presentation/blocs/auth/auth_event.dart';
 import 'presentation/blocs/course/course_bloc.dart';
 import 'presentation/blocs/file/file_bloc.dart';
 import 'presentation/screens/login_screen.dart';
+import 'services/audio_service.dart';
 
 void main() async {
   // Preserve splash screen until initialization complete
@@ -26,6 +27,9 @@ void main() async {
 
   // Initialize Hive
   await Hive.initFlutter();
+
+  // Initialize audio service
+  await AudioService().initialize();
 
   // Register adapters - this must happen before opening boxes
   Hive.registerAdapter(UserModelAdapter());
@@ -169,7 +173,7 @@ class MyApp extends StatelessWidget {
         theme: _buildLightTheme(),
         darkTheme: _buildDarkTheme(),
         themeMode: ThemeMode.system,
-        home: const LoginScreen(),
+        home: const AppLifecycleManager(child: LoginScreen()),
       ),
     );
   }
@@ -301,6 +305,10 @@ class MyApp extends StatelessWidget {
           horizontal: 16,
           vertical: 16,
         ),
+        hintStyle: TextStyle(color: Colors.grey[400]),
+        labelStyle: TextStyle(color: Colors.grey[400]),
+        suffixStyle: TextStyle(color: Colors.white),
+        prefixStyle: TextStyle(color: Colors.white),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
@@ -328,5 +336,47 @@ class MyApp extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+/// Widget to manage app lifecycle events
+class AppLifecycleManager extends StatefulWidget {
+  final Widget child;
+
+  const AppLifecycleManager({super.key, required this.child});
+
+  @override
+  State<AppLifecycleManager> createState() => _AppLifecycleManagerState();
+}
+
+class _AppLifecycleManagerState extends State<AppLifecycleManager>
+    with WidgetsBindingObserver {
+  final AudioService _audioService = AudioService();
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _audioService.dispose();
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.inactive) {
+      // App is in background or being closed
+      _audioService.stopAudio();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return widget.child;
   }
 }

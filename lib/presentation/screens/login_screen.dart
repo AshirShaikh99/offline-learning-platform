@@ -270,7 +270,13 @@ class _LoginScreenState extends State<LoginScreen>
       child: TextFormField(
         controller: controller,
         obscureText: isPassword,
-        style: const TextStyle(fontSize: 16),
+        style: TextStyle(
+          fontSize: 16,
+          color:
+              Theme.of(context).brightness == Brightness.dark
+                  ? Colors.white
+                  : Colors.black,
+        ),
         decoration: InputDecoration(
           hintText: hintText,
           hintStyle: TextStyle(color: Colors.grey.withOpacity(0.7)),

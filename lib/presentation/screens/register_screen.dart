@@ -247,7 +247,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
       child: TextFormField(
         controller: controller,
         obscureText: isPassword,
-        style: const TextStyle(fontSize: 16),
+        style: TextStyle(
+          fontSize: 16,
+          color:
+              Theme.of(context).brightness == Brightness.dark
+                  ? Colors.white
+                  : Colors.black,
+        ),
         decoration: InputDecoration(
           hintText: hintText,
           hintStyle: TextStyle(color: Colors.grey.withOpacity(0.7)),
@@ -348,7 +354,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
             dropdownColor: Theme.of(context).cardColor,
             style: TextStyle(
               fontSize: isSmallScreen ? 14 : 16,
-              color: Theme.of(context).textTheme.bodyLarge?.color,
+              color:
+                  Theme.of(context).brightness == Brightness.dark
+                      ? Colors.white
+                      : Theme.of(context).textTheme.bodyLarge?.color,
               fontWeight: FontWeight.w400,
             ),
             icon: const Icon(Icons.arrow_drop_down, color: Colors.grey),
@@ -421,7 +430,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
             dropdownColor: Theme.of(context).cardColor,
             style: TextStyle(
               fontSize: isSmallScreen ? 14 : 16,
-              color: Theme.of(context).textTheme.bodyLarge?.color,
+              color:
+                  Theme.of(context).brightness == Brightness.dark
+                      ? Colors.white
+                      : Theme.of(context).textTheme.bodyLarge?.color,
               fontWeight: FontWeight.w400,
             ),
             icon: const Icon(Icons.arrow_drop_down, color: Colors.grey),
